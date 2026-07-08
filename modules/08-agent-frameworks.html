@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>08 · A Tour of Agent Frameworks — Agentic AI Course</title>
+<meta name="description" content="You now understand the loop well enough to build it by hand -- which means you&#x27;re also ready to judge which framework (if any) is worth adopting, instead of cargo-culting whatever&#x27;s trending.">
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+
+<nav class="topnav">
+  <div class="wrap bar">
+    <a href="../index.html" class="brand"><span class="dot"></span>Agentic AI <span class="sub">/ COURSE v1.0</span></a>
+    <button class="navtoggle" aria-label="Menu">≡</button>
+    <div class="navlinks">
+      <a href="../index.html" class="">Home</a><a href="../curriculum.html" class="active">Curriculum</a><a href="../capstone.html" class="">Capstone</a><a href="../resources.html" class="">Resources</a>
+      <a href="../curriculum.html" class="cta">START LEARNING →</a>
+    </div>
+  </div>
+</nav>
+
+<header class="module-header">
+  <div class="wrap">
+    <div class="crumb"><a href="../curriculum.html">CURRICULUM</a> / MODULE 08</div>
+    <span class="phase-badge"><i style="background:#E8695E"></i>ACT PHASE</span>
+    <h1>A Tour of Agent Frameworks</h1>
+    <p class="why">You now understand the loop well enough to build it by hand -- which means you're also ready to judge which framework (if any) is worth adopting, instead of cargo-culting whatever's trending.</p>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="tabbar">
+    <button class="tabbtn active" data-tab="overview">01 · Overview</button>
+    <button class="tabbtn" data-tab="build">02 · Build</button>
+    <button class="tabbtn" data-tab="exercise">03 · Exercise &amp; Quiz</button>
+  </div>
+
+  <div data-panel="overview" class="tabpanel active">
+    
+    <p class="lede">Every framework in this space is implementing some version of the Perceive-Reason-Act-Reflect loop from Module 1. What differs is how much structure they impose, and what they optimize for.</p>
+    <h3>The landscape, at a glance</h3>
+    <ul class="checklist">
+      <li><strong>Direct API + tool use</strong> (what you've been doing all course) -- maximum control, minimum abstraction. Best when you need precise, custom behavior or are building something novel.</li>
+      <li><strong>LangChain / LangGraph</strong> -- a large ecosystem of pre-built components plus a graph-based orchestration layer (LangGraph) for defining agent state machines explicitly. Strong when you want fine control over branching logic and many integrations.</li>
+      <li><strong>CrewAI</strong> -- built around the metaphor of a "crew" of role-based agents (researcher, writer, reviewer) collaborating on a task. Strong for quickly prototyping multi-agent workflows with minimal boilerplate.</li>
+      <li><strong>AutoGen</strong> -- a conversation-centric framework where agents "talk" to each other and to humans in a shared chat thread. Strong for research-style, exploratory multi-agent setups.</li>
+      <li><strong>Claude Agent SDK</strong> -- Anthropic's own SDK for building agents directly against Claude, with first-class support for tool use, computer use, and long-running agent loops.</li>
+    </ul>
+    <div class="callout">
+      <span class="lbl">The uncomfortable truth</span>
+      <p>Frameworks add real value for standardizing common patterns and speeding up prototyping -- but every one of them can also become a debugging tax once something goes wrong three abstraction layers deep. Many production teams start with a framework and later strip it back to a thin custom loop once they understand their exact needs.</p>
+    </div>
+    <div class="callout manager">
+      <span class="lbl">For managers</span>
+      <p>Framework choice is a real but reversible decision -- treat it like picking a web framework, not like picking a database. Weight developer familiarity and community support alongside features; the "best" framework on paper is often not the one your team can debug at 2am.</p>
+    </div>
+    
+  </div>
+
+  <div data-panel="build" class="tabpanel">
+    
+    <p class="lede">To make the comparison concrete, here's the same tiny task -- "research a topic, then write a two-sentence summary" -- sketched in a raw loop versus a framework-assisted style.</p>
+    <pre class="code"><span class="c1"># Raw loop (what you built in Modules 1-7)</span>
+result = agent_loop(
+    goal="Research topic X and summarize in 2 sentences",
+    tools=[search_tool, summarize_tool],
+    max_steps=5
+)
+
+<span class="c1"># Graph-style orchestration (LangGraph-flavored pseudocode)</span>
+graph = StateGraph()
+graph.add_node("research", research_step)
+graph.add_node("summarize", summarize_step)
+graph.add_edge("research", "summarize")
+graph.set_entry_point("research")
+result = graph.run(initial_state={"topic": "X"})
+
+<span class="c1"># Role-based crew (CrewAI-flavored pseudocode)</span>
+researcher = Agent(role="Researcher", tools=[search_tool])
+writer = Agent(role="Writer", tools=[summarize_tool])
+crew = Crew(agents=[researcher, writer], tasks=[research_task, write_task])
+result = crew.kickoff()
+</pre>
+    <h3>How to actually choose</h3>
+    <ul class="checklist">
+      <li>Start with the raw loop for anything novel or safety-sensitive -- you need to understand exactly what's happening.</li>
+      <li>Reach for a graph-based framework once your control flow has real branches and loops that get hard to track by hand.</li>
+      <li>Reach for a role-based framework when the natural decomposition of the task really is "specialist roles collaborating," not just a sequence of function calls.</li>
+    </ul>
+    
+  </div>
+
+  <div data-panel="exercise" class="tabpanel">
+    
+    <div class="exercise-box">
+      <span class="lbl">Exercise 8.1 -- Pick a framework and justify it</span>
+      <h4>Choose the right tool for three different projects</h4>
+      <p>For each project, pick raw-loop, graph-based, or role-based, and justify in one sentence:</p>
+      <ol>
+        <li>A financial approval agent where every decision must be auditable step-by-step and mistakes are costly.</li>
+        <li>A content pipeline where a "researcher," "writer," and "editor" each do a distinct pass on a blog post.</li>
+        <li>A prototype you're building in an afternoon to see if agentic search is even worth pursuing for your product.</li>
+      </ol>
+      <details class="solution">
+        <summary>Show suggested answers</summary>
+        <p>1. Raw loop -- you want full visibility and control over every step when mistakes are costly and auditability matters most.<br>
+        2. Role-based (e.g. CrewAI-style) -- the task naturally maps to distinct specialist roles collaborating in sequence.<br>
+        3. Whichever framework your team already knows best -- for a same-day prototype, familiarity beats theoretical fit.</p>
+      </details>
+    </div>
+    
+    <h3>Knowledge check</h3>
+    <div class="quiz"><div class="quiz-q"><p class="qtext">1. What do virtually all agent frameworks have in common under the hood?</p><div class="quiz-opts"><button class="quiz-opt" data-correct="false" data-explain="Frameworks are typically model-agnostic or support multiple providers.">They all use the exact same underlying model</button><button class="quiz-opt" data-correct="true" data-explain="Correct -- the loop from Module 1 is the common thread underneath every framework&#x27;s abstractions.">They&#x27;re all implementations of some version of the Perceive-Reason-Act-Reflect loop</button><button class="quiz-opt" data-correct="false" data-explain="These frameworks are orchestration layers, not model training tools.">They all require a graphics card</button></div><div class="quiz-feedback"></div></div><div class="quiz-q"><p class="qtext">2. When is a raw, hand-built agent loop often the better choice over a framework?</p><div class="quiz-opts"><button class="quiz-opt" data-correct="true" data-explain="Correct -- fewer abstraction layers means fewer places for surprising behavior to hide.">When you need maximum control and understanding for a novel or safety-sensitive task</button><button class="quiz-opt" data-correct="false" data-explain="Deadlines alone don&#x27;t dictate this choice -- team familiarity often matters more.">Whenever the project has any deadline at all</button><button class="quiz-opt" data-correct="false" data-explain="Frameworks add real overhead and debugging complexity that isn&#x27;t always worth it.">Never -- frameworks are always strictly better</button></div><div class="quiz-feedback"></div></div><div class="quiz-q"><p class="qtext">3. A role-based framework (like CrewAI's model) fits best when:</p><div class="quiz-opts"><button class="quiz-opt" data-correct="false" data-explain="That&#x27;s better served by a raw, minimal loop.">The task is a single simple API call</button><button class="quiz-opt" data-correct="true" data-explain="Exactly -- that&#x27;s the scenario role-based frameworks are designed around.">The task naturally decomposes into distinct specialist roles collaborating</button><button class="quiz-opt" data-correct="false" data-explain="Frameworks generally add dependencies, not reduce them.">You want the fewest possible dependencies</button></div><div class="quiz-feedback"></div></div></div>
+  </div>
+
+  <div class="pagenav">
+    <a href="../modules/07-rag-for-agents.html">← Retrieval-Augmented Generation (RAG) for Agents</a>
+    <a class="next" href="../modules/09-multi-agent-systems.html">Multi-Agent Systems & Orchestration →</a>
+  </div>
+</div>
+
+<footer>
+  <div class="wrap row">
+    <div class="fine">AGENTIC AI COURSE — BUILD, DON'T JUST PROMPT.</div>
+    <div class="fine">14 MODULES · CODE LABS · 1 CAPSTONE · MIT-STYLE LICENSE FOR YOUR OWN COHORTS</div>
+  </div>
+</footer>
+<script src="../script.js"></script>
+</body>
+</html>

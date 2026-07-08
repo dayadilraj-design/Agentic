@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>06 · Planning: Task Decomposition &amp; Multi-Step Reasoning — Agentic AI Course</title>
+<meta name="description" content="Simple tool-calling loops work for one-shot tasks. Real work -- &#x27;plan a launch,&#x27; &#x27;refactor this module&#x27; -- needs the agent to break a goal into an ordered set of sub-tasks first.">
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+
+<nav class="topnav">
+  <div class="wrap bar">
+    <a href="../index.html" class="brand"><span class="dot"></span>Agentic AI <span class="sub">/ COURSE v1.0</span></a>
+    <button class="navtoggle" aria-label="Menu">≡</button>
+    <div class="navlinks">
+      <a href="../index.html" class="">Home</a><a href="../curriculum.html" class="active">Curriculum</a><a href="../capstone.html" class="">Capstone</a><a href="../resources.html" class="">Resources</a>
+      <a href="../curriculum.html" class="cta">START LEARNING →</a>
+    </div>
+  </div>
+</nav>
+
+<header class="module-header">
+  <div class="wrap">
+    <div class="crumb"><a href="../curriculum.html">CURRICULUM</a> / MODULE 06</div>
+    <span class="phase-badge"><i style="background:#F0A93E"></i>REASON PHASE</span>
+    <h1>Planning: Task Decomposition & Multi-Step Reasoning</h1>
+    <p class="why">Simple tool-calling loops work for one-shot tasks. Real work -- 'plan a launch,' 'refactor this module' -- needs the agent to break a goal into an ordered set of sub-tasks first.</p>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="tabbar">
+    <button class="tabbtn active" data-tab="overview">01 · Overview</button>
+    <button class="tabbtn" data-tab="build">02 · Build</button>
+    <button class="tabbtn" data-tab="exercise">03 · Exercise &amp; Quiz</button>
+  </div>
+
+  <div data-panel="overview" class="tabpanel active">
+    
+    <p class="lede">The moment a task requires more than one meaningful decision in sequence, you need a planning strategy, or the agent will thrash: calling tools in the wrong order, forgetting the overall goal, or declaring victory too early.</p>
+    <h3>Three planning patterns, from simplest to most structured</h3>
+    <ul class="checklist">
+      <li><strong>Reactive (ReAct-style)</strong> -- no upfront plan; the agent decides one step at a time based on what it currently sees. Simple, flexible, but can wander on long tasks.</li>
+      <li><strong>Plan-and-execute</strong> -- the agent first writes out an explicit numbered plan, then executes each step, optionally replanning if a step reveals new information.</li>
+      <li><strong>Hierarchical decomposition</strong> -- a top-level planner breaks a goal into sub-goals, each of which may be handled by its own sub-agent or sub-loop (this is the bridge into Module 9's multi-agent systems).</li>
+    </ul>
+    <div class="callout">
+      <span class="lbl">When to use which</span>
+      <p>Reactive is fine for short tasks (2-4 tool calls). Plan-and-execute earns its overhead once a task has enough steps that losing track of the goal becomes a real risk. Hierarchical decomposition is worth the complexity only when sub-tasks are genuinely independent enough to benefit from separate context.</p>
+    </div>
+    <div class="callout manager">
+      <span class="lbl">For managers</span>
+      <p>If an agent's task takes more than a few steps, ask to see its plan before it starts executing, not just its final output. A visible plan is one of the cheapest oversight mechanisms available, and it's a natural point for a human to catch a bad approach early.</p>
+    </div>
+    
+  </div>
+
+  <div data-panel="build" class="tabpanel">
+    
+    <p class="lede">Here's a plan-and-execute skeleton, the most common upgrade from a purely reactive loop.</p>
+    <pre class="code"><span class="c1"># Step 1: ask the model to produce an explicit plan first</span>
+plan_response = model.call(
+    system="You are a planning assistant. Break the user's goal into a "
+           "numbered list of concrete sub-tasks. Do not execute anything yet.",
+    messages=[{"role": "user", "content": goal}]
+)
+plan = parse_plan(plan_response.text)  <span class="c1"># e.g. ["Research competitors", "Draft outline", "Write intro"]</span>
+
+<span class="c1"># Step 2: execute each step, feeding results forward</span>
+completed_steps = []
+<span class="k1">for</span> step <span class="k1">in</span> plan:
+    result = run_agent_step(step, context=completed_steps)
+    completed_steps.append({"step": step, "result": result})
+
+    <span class="c1"># Step 3: optional replanning if a step reveals the plan needs to change</span>
+    <span class="k1">if</span> result.get("requires_replan"):
+        plan = replan(goal, completed_steps)
+</pre>
+    <h3>Why explicit plans help debugging</h3>
+    <p>A written plan is a checkpoint you can inspect, log, and even show to a human for approval before any tool with real-world side effects runs -- turning a black-box multi-step task into something auditable.</p>
+    
+  </div>
+
+  <div data-panel="exercise" class="tabpanel">
+    
+    <div class="exercise-box">
+      <span class="lbl">Exercise 6.1 -- Choose a planning strategy</span>
+      <h4>Match the task to the right planning pattern</h4>
+      <p>For each task, decide whether reactive, plan-and-execute, or hierarchical decomposition fits best, and why:</p>
+      <ol>
+        <li>"What's 15% of $340?"</li>
+        <li>"Research three competitor pricing pages and summarize the differences."</li>
+        <li>"Plan and execute our entire quarterly content calendar across blog, social, and email."</li>
+      </ol>
+      <details class="solution">
+        <summary>Show suggested answers</summary>
+        <p>1. Reactive -- a single tool call (a calculator), no real planning needed.<br>
+        2. Plan-and-execute -- a handful of clearly ordered steps (visit each page, extract data, compare) benefit from an explicit plan.<br>
+        3. Hierarchical decomposition -- three genuinely independent workstreams (blog, social, email) are natural candidates for separate sub-agents coordinated by a top-level planner.</p>
+      </details>
+    </div>
+    
+    <h3>Knowledge check</h3>
+    <div class="quiz"><div class="quiz-q"><p class="qtext">1. What's the main risk of a purely reactive agent on a long, multi-step task?</p><div class="quiz-opts"><button class="quiz-opt" data-correct="false" data-explain="Tool availability isn&#x27;t the core risk here.">It runs out of tools</button><button class="quiz-opt" data-correct="true" data-explain="Correct -- without an explicit plan, long tasks are prone to wandering.">It can lose track of the overall goal and thrash between steps</button><button class="quiz-opt" data-correct="false" data-explain="Speed isn&#x27;t the primary concern in this comparison.">It becomes too slow to be usable</button></div><div class="quiz-feedback"></div></div><div class="quiz-q"><p class="qtext">2. What's a key benefit of having an agent write an explicit plan before executing?</p><div class="quiz-opts"><button class="quiz-opt" data-correct="false" data-explain="A written plan can still be wrong -- it&#x27;s inspectable, not infallible.">It guarantees the plan is correct</button><button class="quiz-opt" data-correct="true" data-explain="Exactly -- this is a major oversight and debugging win.">It gives a human (or the system) a checkpoint to review before side-effecting tools run</button><button class="quiz-opt" data-correct="false" data-explain="Planning and tool use are complementary, not substitutes.">It eliminates the need for tools entirely</button></div><div class="quiz-feedback"></div></div><div class="quiz-q"><p class="qtext">3. Hierarchical decomposition is most worth its added complexity when:</p><div class="quiz-opts"><button class="quiz-opt" data-correct="false" data-explain="Simple lookups don&#x27;t need decomposition at all.">The task is a single simple lookup</button><button class="quiz-opt" data-correct="true" data-explain="Correct -- that independence is what justifies splitting work across sub-agents.">Sub-tasks are genuinely independent and benefit from separate context</button><button class="quiz-opt" data-correct="false" data-explain="Tooling preference shouldn&#x27;t drive architecture decisions.">The team wants to use more frameworks</button></div><div class="quiz-feedback"></div></div></div>
+  </div>
+
+  <div class="pagenav">
+    <a href="../modules/05-memory-in-agents.html">← Memory: Short-Term, Long-Term & Vector Stores</a>
+    <a class="next" href="../modules/07-rag-for-agents.html">Retrieval-Augmented Generation (RAG) for Agents →</a>
+  </div>
+</div>
+
+<footer>
+  <div class="wrap row">
+    <div class="fine">AGENTIC AI COURSE — BUILD, DON'T JUST PROMPT.</div>
+    <div class="fine">14 MODULES · CODE LABS · 1 CAPSTONE · MIT-STYLE LICENSE FOR YOUR OWN COHORTS</div>
+  </div>
+</footer>
+<script src="../script.js"></script>
+</body>
+</html>

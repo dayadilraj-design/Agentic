@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>05 · Memory: Short-Term, Long-Term &amp; Vector Stores — Agentic AI Course</title>
+<meta name="description" content="An agent without memory relearns everything every single turn. Getting memory right is what separates a one-off script from an assistant that actually gets better the more it&#x27;s used.">
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+
+<nav class="topnav">
+  <div class="wrap bar">
+    <a href="../index.html" class="brand"><span class="dot"></span>Agentic AI <span class="sub">/ COURSE v1.0</span></a>
+    <button class="navtoggle" aria-label="Menu">≡</button>
+    <div class="navlinks">
+      <a href="../index.html" class="">Home</a><a href="../curriculum.html" class="active">Curriculum</a><a href="../capstone.html" class="">Capstone</a><a href="../resources.html" class="">Resources</a>
+      <a href="../curriculum.html" class="cta">START LEARNING →</a>
+    </div>
+  </div>
+</nav>
+
+<header class="module-header">
+  <div class="wrap">
+    <div class="crumb"><a href="../curriculum.html">CURRICULUM</a> / MODULE 05</div>
+    <span class="phase-badge"><i style="background:#63D2C9"></i>PERCEIVE PHASE</span>
+    <h1>Memory: Short-Term, Long-Term & Vector Stores</h1>
+    <p class="why">An agent without memory relearns everything every single turn. Getting memory right is what separates a one-off script from an assistant that actually gets better the more it's used.</p>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="tabbar">
+    <button class="tabbtn active" data-tab="overview">01 · Overview</button>
+    <button class="tabbtn" data-tab="build">02 · Build</button>
+    <button class="tabbtn" data-tab="exercise">03 · Exercise &amp; Quiz</button>
+  </div>
+
+  <div data-panel="overview" class="tabpanel active">
+    
+    <p class="lede">Every LLM call is stateless -- the model remembers nothing between calls except what you explicitly put back into its context window. "Memory" in an agent is really just an engineering pattern for deciding what to re-inject, and when.</p>
+    <h3>Three kinds of memory agents actually use</h3>
+    <ul class="checklist">
+      <li><strong>Working memory</strong> -- the current conversation history, kept in the context window turn by turn. Cheap, but limited by context size and gets expensive at scale.</li>
+      <li><strong>Episodic / long-term memory</strong> -- facts and events from past sessions, stored externally (often in a vector database) and retrieved only when relevant to the current turn.</li>
+      <li><strong>Procedural memory</strong> -- learned preferences or corrections ("always format dates as DD/MM/YYYY for this user") that get folded back into future system prompts rather than raw conversation history.</li>
+    </ul>
+    <div class="callout">
+      <span class="lbl">Key idea: retrieval, not recall</span>
+      <p>Long-term memory in an agent isn't the model "remembering" -- it's your system searching a store of past information for what's relevant right now, and injecting only that into the prompt. This is exactly the same mechanism as RAG (Module 7), just applied to the agent's own history instead of external documents.</p>
+    </div>
+    <div class="callout manager">
+      <span class="lbl">For managers</span>
+      <p>"Does it remember me?" is really a data-retention and privacy question as much as a technical one. Decide upfront what gets stored, for how long, and how a user can see or delete it -- this is far easier to design in than to retrofit.</p>
+    </div>
+    
+  </div>
+
+  <div data-panel="build" class="tabpanel">
+    
+    <p class="lede">A practical long-term memory system has three moving parts: an embedding model to turn text into vectors, a vector store to hold them, and a retrieval step that runs before every agent turn.</p>
+    <pre class="code"><span class="c1"># Writing to long-term memory after a conversation</span>
+summary = summarize_for_memory(conversation_transcript)
+embedding = embed_model.encode(summary)
+vector_store.upsert(
+    id=f"user:{user_id}:{timestamp}",
+    vector=embedding,
+    metadata={"user_id": user_id, "text": summary, "date": timestamp}
+)
+
+<span class="c1"># Retrieving relevant memories before responding</span>
+query_embedding = embed_model.encode(current_user_message)
+relevant_memories = vector_store.query(
+    vector=query_embedding,
+    filter={"user_id": user_id},
+    top_k=3
+)
+
+<span class="c1"># Injected into the system prompt, not the raw conversation history</span>
+system_prompt = f"""
+Relevant things you know about this user from past conversations:
+{format_memories(relevant_memories)}
+"""
+</pre>
+    <h3>Context window management</h3>
+    <p>Even working memory needs a strategy once conversations get long. Common approaches: sliding window (keep the last N turns), rolling summarization (periodically compress older turns into a summary), or hybrid (keep recent turns verbatim, summarize everything older).</p>
+    
+  </div>
+
+  <div data-panel="exercise" class="tabpanel">
+    
+    <div class="exercise-box">
+      <span class="lbl">Exercise 5.1 -- Design a memory policy</span>
+      <h4>Decide what a customer-service agent should and shouldn't remember</h4>
+      <p>You're designing memory for an agent that helps customers troubleshoot a product across multiple sessions. List: (a) two things worth storing in long-term memory, (b) one thing that should <em>not</em> be stored for privacy reasons, and (c) how long memories should be retained.</p>
+      <details class="solution">
+        <summary>Show one possible answer</summary>
+        <p>(a) Worth storing: the product model/version the customer owns (avoids re-asking every session), and a summary of unresolved issues so a new session picks up where the last left off.<br>
+        (b) Should not store: payment details or anything typed that looks like a password or verification code, even if mentioned in passing.<br>
+        (c) A reasonable default is a rolling retention window (e.g. 12 months) with a clear, user-facing way to view and delete stored memories on request.</p>
+      </details>
+    </div>
+    
+    <h3>Knowledge check</h3>
+    <div class="quiz"><div class="quiz-q"><p class="qtext">1. Why is an LLM call described as 'stateless'?</p><div class="quiz-opts"><button class="quiz-opt" data-correct="false" data-explain="Statelessness is unrelated to answer length.">Because it can&#x27;t produce long answers</button><button class="quiz-opt" data-correct="true" data-explain="Correct -- every bit of &#x27;memory&#x27; has to be re-injected by your system.">Because it remembers nothing between calls except what&#x27;s explicitly included in the prompt</button><button class="quiz-opt" data-correct="false" data-explain="Tool use and statelessness are unrelated concepts.">Because it doesn&#x27;t use tools</button></div><div class="quiz-feedback"></div></div><div class="quiz-q"><p class="qtext">2. What's the core mechanism behind long-term memory retrieval in an agent?</p><div class="quiz-opts"><button class="quiz-opt" data-correct="false" data-explain="Models don&#x27;t retain state between separate calls.">The model has a persistent internal memory bank</button><button class="quiz-opt" data-correct="true" data-explain="Exactly -- it&#x27;s retrieval, the same mechanism used in RAG.">Searching an external store for relevant past information and injecting it into the prompt</button><button class="quiz-opt" data-correct="false" data-explain="Fine-tuning is a separate, much heavier-weight process, not how conversational memory typically works.">Fine-tuning the model after every conversation</button></div><div class="quiz-feedback"></div></div><div class="quiz-q"><p class="qtext">3. A support agent's memory system should generally avoid storing:</p><div class="quiz-opts"><button class="quiz-opt" data-correct="false" data-explain="This is useful, low-risk context worth retaining.">The product version a customer owns</button><button class="quiz-opt" data-correct="true" data-explain="Correct -- sensitive data like this should be filtered out before it ever reaches long-term storage.">Payment details or credentials mentioned in passing</button><button class="quiz-opt" data-correct="false" data-explain="This helps continuity across sessions and is generally fine to store.">A summary of unresolved issues</button></div><div class="quiz-feedback"></div></div></div>
+  </div>
+
+  <div class="pagenav">
+    <a href="../modules/04-tool-use-function-calling.html">← Tool Use & Function Calling</a>
+    <a class="next" href="../modules/06-planning-and-reasoning.html">Planning: Task Decomposition & Multi-Step Reasoning →</a>
+  </div>
+</div>
+
+<footer>
+  <div class="wrap row">
+    <div class="fine">AGENTIC AI COURSE — BUILD, DON'T JUST PROMPT.</div>
+    <div class="fine">14 MODULES · CODE LABS · 1 CAPSTONE · MIT-STYLE LICENSE FOR YOUR OWN COHORTS</div>
+  </div>
+</footer>
+<script src="../script.js"></script>
+</body>
+</html>

@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>04 · Tool Use &amp; Function Calling — Agentic AI Course</title>
+<meta name="description" content="Tools are how an agent stops talking and starts doing. This is the single most important mechanical skill in the whole course -- everything else assumes you can wire this up correctly.">
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+
+<nav class="topnav">
+  <div class="wrap bar">
+    <a href="../index.html" class="brand"><span class="dot"></span>Agentic AI <span class="sub">/ COURSE v1.0</span></a>
+    <button class="navtoggle" aria-label="Menu">≡</button>
+    <div class="navlinks">
+      <a href="../index.html" class="">Home</a><a href="../curriculum.html" class="active">Curriculum</a><a href="../capstone.html" class="">Capstone</a><a href="../resources.html" class="">Resources</a>
+      <a href="../curriculum.html" class="cta">START LEARNING →</a>
+    </div>
+  </div>
+</nav>
+
+<header class="module-header">
+  <div class="wrap">
+    <div class="crumb"><a href="../curriculum.html">CURRICULUM</a> / MODULE 04</div>
+    <span class="phase-badge"><i style="background:#E8695E"></i>ACT PHASE</span>
+    <h1>Tool Use & Function Calling</h1>
+    <p class="why">Tools are how an agent stops talking and starts doing. This is the single most important mechanical skill in the whole course -- everything else assumes you can wire this up correctly.</p>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="tabbar">
+    <button class="tabbtn active" data-tab="overview">01 · Overview</button>
+    <button class="tabbtn" data-tab="build">02 · Build</button>
+    <button class="tabbtn" data-tab="exercise">03 · Exercise &amp; Quiz</button>
+  </div>
+
+  <div data-panel="overview" class="tabpanel active">
+    
+    <p class="lede">Function calling is the bridge between a model's decision and a real-world effect. The model never runs code itself -- it outputs a structured request ("call this function with these arguments"), and your application decides whether and how to actually run it.</p>
+    <h3>The four-step tool call cycle</h3>
+    <ul class="checklist">
+      <li><strong>Define</strong> -- you describe each tool's name, purpose, and expected arguments (usually as a JSON schema) up front.</li>
+      <li><strong>Request</strong> -- the model, mid-conversation, outputs a structured request to call a specific tool with specific arguments.</li>
+      <li><strong>Execute</strong> -- your code (not the model) actually runs the corresponding function, with whatever validation and permission checks you choose to add.</li>
+      <li><strong>Return</strong> -- the result is fed back into the conversation, and the model reasons over it to decide the next step.</li>
+    </ul>
+    <div class="callout">
+      <span class="lbl">This is your security boundary</span>
+      <p>Every tool you expose is a capability you're granting the model. "Delete file," "send email," and "charge credit card" are all just tools from the model's point of view -- the safety comes entirely from how carefully you scope, validate, and gate each one in your execution layer, not from the model's judgment alone.</p>
+    </div>
+    <div class="callout manager">
+      <span class="lbl">For managers</span>
+      <p>Ask for the tool list of any agent before it ships. It's the clearest, most concrete artifact of what the system can actually do -- more informative than any description of "capabilities."</p>
+    </div>
+    
+  </div>
+
+  <div data-panel="build" class="tabpanel">
+    
+    <p class="lede">Here's a minimal, realistic tool-calling setup using the Anthropic API pattern (the shape is very similar across OpenAI, Gemini, and other providers).</p>
+    <pre class="code"><span class="c1"># 1. DEFINE -- describe the tool with a schema</span>
+tools = [{
+    "name": "get_weather",
+    "description": "Get the current weather for a given city",
+    "input_schema": {
+        "type": "object",
+        "properties": {
+            "city": {"type": "string", "description": "City name, e.g. 'Ludhiana'"}
+        },
+        "required": ["city"]
+    }
+}]
+
+response = client.messages.create(
+    model="claude-sonnet-5",
+    max_tokens=1024,
+    tools=tools,
+    messages=[{"role": "user", "content": "Should I bring an umbrella in Ludhiana today?"}]
+)
+
+<span class="c1"># 2. REQUEST -- inspect the response for a tool_use block</span>
+<span class="k1">for</span> block <span class="k1">in</span> response.content:
+    <span class="k1">if</span> block.type == "tool_use":
+        tool_name = block.name          <span class="c1"># "get_weather"</span>
+        tool_args = block.input         <span class="c1"># {"city": "Ludhiana"}</span>
+
+        <span class="c1"># 3. EXECUTE -- your code runs the real function, with validation</span>
+        result = call_real_weather_api(tool_args["city"])
+
+        <span class="c1"># 4. RETURN -- feed the result back for the model to reason over</span>
+        follow_up = client.messages.create(
+            model="claude-sonnet-5",
+            max_tokens=1024,
+            tools=tools,
+            messages=[
+                {"role": "user", "content": "Should I bring an umbrella in Ludhiana today?"},
+                {"role": "assistant", "content": response.content},
+                {"role": "user", "content": [{
+                    "type": "tool_result",
+                    "tool_use_id": block.id,
+                    "content": str(result)
+                }]}
+            ]
+        )
+</pre>
+    <h3>Designing good tools</h3>
+    <ul class="checklist">
+      <li>Narrow and specific beats broad and flexible -- <code>cancel_subscription(user_id)</code> is safer and easier for the model to use correctly than <code>run_database_query(sql)</code>.</li>
+      <li>Return errors as data, not exceptions -- let the model see "city not found" and decide what to do, rather than crashing the loop.</li>
+      <li>Put permission checks in the execution layer, never rely on the prompt alone to prevent misuse of a dangerous tool.</li>
+    </ul>
+    
+  </div>
+
+  <div data-panel="exercise" class="tabpanel">
+    
+    <div class="exercise-box">
+      <span class="lbl">Exercise 4.1 -- Design a tool schema</span>
+      <h4>Write the schema for a calendar-booking tool</h4>
+      <p>Design a <code>schedule_meeting</code> tool for an agent that books meetings. Decide: what arguments does it need (attendees, time, duration, title)? What should happen if the requested time conflicts with an existing meeting -- should that be handled inside the tool, or should the tool return conflict data for the model to reason about?</p>
+      <details class="solution">
+        <summary>Show one possible answer</summary>
+        <p>Arguments: <code>title</code> (string), <code>attendees</code> (array of emails), <code>start_time</code> (ISO 8601 string), <code>duration_minutes</code> (integer). Best practice: the tool itself should check for conflicts and return structured data like <code>{"booked": false, "conflict": {"title": "1:1 with Sam", "time": "..."}}</code> rather than silently double-booking or silently failing -- this lets the model decide whether to propose an alternate time, ask the user, or escalate.</p>
+      </details>
+    </div>
+    
+    <h3>Knowledge check</h3>
+    <div class="quiz"><div class="quiz-q"><p class="qtext">1. When a model 'calls a tool,' what is actually happening under the hood?</p><div class="quiz-opts"><button class="quiz-opt" data-correct="false" data-explain="Models cannot execute arbitrary code themselves -- there is no runtime inside the weights.">The model executes code directly inside its own weights</button><button class="quiz-opt" data-correct="true" data-explain="Correct -- this separation is the whole safety model behind tool use.">The model outputs a structured request; your application code executes the real function</button><button class="quiz-opt" data-correct="false" data-explain="The model is the one that decides to request the tool call in the first place.">The tool call bypasses the model entirely</button></div><div class="quiz-feedback"></div></div><div class="quiz-q"><p class="qtext">2. Why is `cancel_subscription(user_id)` generally a safer tool design than `run_database_query(sql)`?</p><div class="quiz-opts"><button class="quiz-opt" data-correct="false" data-explain="Speed isn&#x27;t the concern here.">It runs faster</button><button class="quiz-opt" data-correct="true" data-explain="Exactly -- narrow, specific tools are much easier to validate and secure than open-ended ones.">It narrows what the model can possibly do to one well-defined, reviewable action</button><button class="quiz-opt" data-correct="false" data-explain="Memory usage isn&#x27;t the relevant tradeoff.">It uses less memory</button></div><div class="quiz-feedback"></div></div><div class="quiz-q"><p class="qtext">3. If a tool call fails (e.g. city not found), what's generally the best design?</p><div class="quiz-opts"><button class="quiz-opt" data-correct="false" data-explain="This makes the agent brittle and unable to recover or explain itself.">Crash the whole agent loop immediately</button><button class="quiz-opt" data-correct="true" data-explain="Correct -- this lets the model decide to retry, ask for clarification, or explain the failure.">Return the error as structured data the model can reason about</button><button class="quiz-opt" data-correct="false" data-explain="Silent infinite retries can hide real problems and waste resources.">Silently retry forever until it succeeds</button></div><div class="quiz-feedback"></div></div></div>
+  </div>
+
+  <div class="pagenav">
+    <a href="../modules/03-prompting-for-agents.html">← Prompting Patterns for Agents</a>
+    <a class="next" href="../modules/05-memory-in-agents.html">Memory: Short-Term, Long-Term & Vector Stores →</a>
+  </div>
+</div>
+
+<footer>
+  <div class="wrap row">
+    <div class="fine">AGENTIC AI COURSE — BUILD, DON'T JUST PROMPT.</div>
+    <div class="fine">14 MODULES · CODE LABS · 1 CAPSTONE · MIT-STYLE LICENSE FOR YOUR OWN COHORTS</div>
+  </div>
+</footer>
+<script src="../script.js"></script>
+</body>
+</html>

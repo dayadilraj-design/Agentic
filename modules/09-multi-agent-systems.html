@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>09 · Multi-Agent Systems &amp; Orchestration — Agentic AI Course</title>
+<meta name="description" content="Some tasks are genuinely too broad for one agent to hold in its head at once. Multi-agent design lets you trade a bigger, murkier problem for several smaller, clearer ones -- at the cost of real coordination overhead.">
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+
+<nav class="topnav">
+  <div class="wrap bar">
+    <a href="../index.html" class="brand"><span class="dot"></span>Agentic AI <span class="sub">/ COURSE v1.0</span></a>
+    <button class="navtoggle" aria-label="Menu">≡</button>
+    <div class="navlinks">
+      <a href="../index.html" class="">Home</a><a href="../curriculum.html" class="active">Curriculum</a><a href="../capstone.html" class="">Capstone</a><a href="../resources.html" class="">Resources</a>
+      <a href="../curriculum.html" class="cta">START LEARNING →</a>
+    </div>
+  </div>
+</nav>
+
+<header class="module-header">
+  <div class="wrap">
+    <div class="crumb"><a href="../curriculum.html">CURRICULUM</a> / MODULE 09</div>
+    <span class="phase-badge"><i style="background:#E8695E"></i>ACT PHASE</span>
+    <h1>Multi-Agent Systems & Orchestration</h1>
+    <p class="why">Some tasks are genuinely too broad for one agent to hold in its head at once. Multi-agent design lets you trade a bigger, murkier problem for several smaller, clearer ones -- at the cost of real coordination overhead.</p>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="tabbar">
+    <button class="tabbtn active" data-tab="overview">01 · Overview</button>
+    <button class="tabbtn" data-tab="build">02 · Build</button>
+    <button class="tabbtn" data-tab="exercise">03 · Exercise &amp; Quiz</button>
+  </div>
+
+  <div data-panel="overview" class="tabpanel active">
+    
+    <p class="lede">A multi-agent system is not automatically better than a single well-designed agent -- it trades one kind of complexity (a long, complicated single prompt) for another (coordination between agents). Use it when the trade is worth it, not by default.</p>
+    <h3>Common orchestration patterns</h3>
+    <ul class="checklist">
+      <li><strong>Orchestrator-worker</strong> -- one "manager" agent breaks a goal into sub-tasks and delegates each to a specialized worker agent, then assembles the results. The most common and most controllable pattern.</li>
+      <li><strong>Peer-to-peer / debate</strong> -- multiple agents critique or build on each other's outputs before converging on a final answer. Useful for improving quality on subjective or high-stakes outputs.</li>
+      <li><strong>Pipeline</strong> -- a fixed sequence of specialized agents, each handing off to the next (research agent -> writer agent -> fact-checker agent). Predictable, easy to debug, less flexible.</li>
+    </ul>
+    <div class="callout">
+      <span class="lbl">When multi-agent actually helps</span>
+      <p>Splitting into multiple agents earns its overhead when sub-tasks need genuinely different context, tools, or "personas" that would otherwise conflict in one long prompt -- not simply because a task has multiple steps (that's what planning, from Module 6, is for).</p>
+    </div>
+    <div class="callout manager">
+      <span class="lbl">For managers</span>
+      <p>Multi-agent systems multiply your debugging surface and your API cost roughly linearly with the number of agents involved. Before approving one, ask what a single, well-planned agent couldn't do -- if there's no clear answer, you may be paying multi-agent overhead for single-agent value.</p>
+    </div>
+    
+  </div>
+
+  <div data-panel="build" class="tabpanel">
+    
+    <p class="lede">Here's a minimal orchestrator-worker pattern -- the safest, most debuggable place to start with multi-agent design.</p>
+    <pre class="code"><span class="c1"># Orchestrator decomposes the goal and delegates</span>
+<span class="k1">def</span> orchestrator(goal):
+    subtasks = plan_subtasks(goal)   <span class="c1"># e.g. ["research pricing", "research features"]</span>
+    results = []
+    <span class="k1">for</span> subtask <span class="k1">in</span> subtasks:
+        worker_result = worker_agent(
+            role="Research Specialist",
+            task=subtask,
+            tools=[search_tool]
+        )
+        results.append(worker_result)
+    <span class="k1">return</span> synthesize(goal, results)   <span class="c1"># orchestrator combines worker outputs</span>
+
+<span class="c1"># Each worker is a fully independent agent loop with its own,</span>
+<span class="c1"># narrower system prompt and its own tool access -- crucially,</span>
+<span class="c1"># it does not see the full original goal, only its assigned slice.</span>
+</pre>
+    <h3>Coordination failure modes to watch for</h3>
+    <ul class="checklist">
+      <li><strong>Context loss</strong> -- a worker given too narrow a slice of context makes decisions that don't serve the overall goal.</li>
+      <li><strong>Redundant work</strong> -- two workers unknowingly research the same thing because the orchestrator didn't partition the task cleanly.</li>
+      <li><strong>Synthesis failure</strong> -- individually correct worker outputs combine into an incoherent or contradictory final result.</li>
+    </ul>
+    <p>Each of these is a real engineering problem, not a hypothetical one -- budget explicit time to test the handoffs between agents, not just each agent in isolation.</p>
+    
+  </div>
+
+  <div data-panel="exercise" class="tabpanel">
+    
+    <div class="exercise-box">
+      <span class="lbl">Exercise 9.1 -- Design an orchestration for a real task</span>
+      <h4>Break "prepare a competitive analysis report" into an orchestrator-worker design</h4>
+      <p>Decide: how many worker agents, what does each one own, what tools does each need, and what does the orchestrator do with their outputs? Watch out for the redundant-work failure mode above.</p>
+      <details class="solution">
+        <summary>Show one possible answer</summary>
+        <p>Orchestrator: takes the list of competitors, assigns one worker per competitor (not per section) to avoid two workers researching the same company. Each worker: a "Competitor Researcher" with a web search tool, given one company name and a fixed set of questions to answer (pricing, key features, recent news). Orchestrator's final step: synthesize all worker outputs into a comparison table and a short narrative summary, explicitly checking for contradictions between workers before finalizing.</p>
+      </details>
+    </div>
+    
+    <h3>Knowledge check</h3>
+    <div class="quiz"><div class="quiz-q"><p class="qtext">1. What's the main trade-off when moving from a single agent to a multi-agent system?</p><div class="quiz-opts"><button class="quiz-opt" data-correct="true" data-explain="Correct -- multi-agent isn&#x27;t free complexity reduction, it&#x27;s a different complexity.">You trade one kind of complexity (a long prompt) for another (coordination overhead)</button><button class="quiz-opt" data-correct="false" data-explain="In practice they usually add debugging surface, not reduce it.">Multi-agent systems are always simpler to debug</button><button class="quiz-opt" data-correct="false" data-explain="Each agent in a multi-agent system still needs its own well-designed prompt.">Multi-agent systems never need system prompts</button></div><div class="quiz-feedback"></div></div><div class="quiz-q"><p class="qtext">2. In the orchestrator-worker pattern, what should each worker typically NOT have full access to?</p><div class="quiz-opts"><button class="quiz-opt" data-correct="false" data-explain="Workers need this to do their job.">Its own assigned subtask</button><button class="quiz-opt" data-correct="true" data-explain="Correct -- keeping workers scoped to their slice is what keeps the pattern debuggable and avoids redundant work.">The full original goal and every other worker&#x27;s context</button><button class="quiz-opt" data-correct="false" data-explain="Workers typically do need tools -- just scoped to what their subtask requires.">Any tools at all</button></div><div class="quiz-feedback"></div></div><div class="quiz-q"><p class="qtext">3. Two worker agents unknowingly research the exact same competitor. This is an example of:</p><div class="quiz-opts"><button class="quiz-opt" data-correct="false" data-explain="Context loss is about a worker missing needed context, not duplicating work.">Context loss</button><button class="quiz-opt" data-correct="true" data-explain="Correct -- this is exactly the failure mode caused by an unclear split of responsibilities.">Redundant work from poor task partitioning</button><button class="quiz-opt" data-correct="false" data-explain="Synthesis failure happens at the combining step, not during individual research.">Synthesis failure</button></div><div class="quiz-feedback"></div></div></div>
+  </div>
+
+  <div class="pagenav">
+    <a href="../modules/08-agent-frameworks.html">← A Tour of Agent Frameworks</a>
+    <a class="next" href="../modules/10-evaluation-debugging.html">Evaluation, Testing & Debugging Agents →</a>
+  </div>
+</div>
+
+<footer>
+  <div class="wrap row">
+    <div class="fine">AGENTIC AI COURSE — BUILD, DON'T JUST PROMPT.</div>
+    <div class="fine">14 MODULES · CODE LABS · 1 CAPSTONE · MIT-STYLE LICENSE FOR YOUR OWN COHORTS</div>
+  </div>
+</footer>
+<script src="../script.js"></script>
+</body>
+</html>

@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>10 · Evaluation, Testing &amp; Debugging Agents — Agentic AI Course</title>
+<meta name="description" content="Agents fail in ways traditional software doesn&#x27;t -- silently, plausibly, and inconsistently across runs. Without a real evaluation practice, you&#x27;re shipping on vibes.">
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+
+<nav class="topnav">
+  <div class="wrap bar">
+    <a href="../index.html" class="brand"><span class="dot"></span>Agentic AI <span class="sub">/ COURSE v1.0</span></a>
+    <button class="navtoggle" aria-label="Menu">≡</button>
+    <div class="navlinks">
+      <a href="../index.html" class="">Home</a><a href="../curriculum.html" class="active">Curriculum</a><a href="../capstone.html" class="">Capstone</a><a href="../resources.html" class="">Resources</a>
+      <a href="../curriculum.html" class="cta">START LEARNING →</a>
+    </div>
+  </div>
+</nav>
+
+<header class="module-header">
+  <div class="wrap">
+    <div class="crumb"><a href="../curriculum.html">CURRICULUM</a> / MODULE 10</div>
+    <span class="phase-badge"><i style="background:#9C8CF0"></i>REFLECT PHASE</span>
+    <h1>Evaluation, Testing & Debugging Agents</h1>
+    <p class="why">Agents fail in ways traditional software doesn't -- silently, plausibly, and inconsistently across runs. Without a real evaluation practice, you're shipping on vibes.</p>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="tabbar">
+    <button class="tabbtn active" data-tab="overview">01 · Overview</button>
+    <button class="tabbtn" data-tab="build">02 · Build</button>
+    <button class="tabbtn" data-tab="exercise">03 · Exercise &amp; Quiz</button>
+  </div>
+
+  <div data-panel="overview" class="tabpanel active">
+    
+    <p class="lede">Because the same agent can behave differently on the same input (models aren't fully deterministic, and small context changes cascade), you can't rely on the traditional unit-test mindset of "run once, assert pass." You need evaluation as an ongoing practice, not a one-time gate.</p>
+    <h3>Three layers of agent evaluation</h3>
+    <ul class="checklist">
+      <li><strong>Component-level tests</strong> -- does each individual tool work correctly, deterministically, in isolation? This is normal software testing and it's non-negotiable.</li>
+      <li><strong>Trajectory evaluation</strong> -- given a task, did the agent take a reasonable path to the answer (right tools, right order), not just a correct final output? A right answer reached the wrong way is a ticking time bomb.</li>
+      <li><strong>Outcome evaluation at scale</strong> -- running a representative set of test cases (an "eval set") repeatedly, tracking success rate over time as you change prompts, models, or tools.</li>
+    </ul>
+    <div class="callout">
+      <span class="lbl">Build your eval set early</span>
+      <p>Collect real, representative examples of tasks your agent needs to handle -- including edge cases and known-hard inputs -- before you need them. An eval set built after a production incident is a eval set built too late.</p>
+    </div>
+    <div class="callout manager">
+      <span class="lbl">For managers</span>
+      <p>Ask "what's the eval set, and what's the current pass rate?" the same way you'd ask about test coverage on any other software project. If the answer is "we tried it a few times and it seemed fine," treat that as a yellow flag, not a green light.</p>
+    </div>
+    
+  </div>
+
+  <div data-panel="build" class="tabpanel">
+    
+    <p class="lede">A simple but genuinely useful evaluation harness: run the agent against a fixed set of test cases, and score each on both outcome and trajectory.</p>
+    <pre class="code">eval_cases = [
+    {"input": "Book a flight from Delhi to Mumbai next Friday",
+     "expected_tool_sequence": ["search_flights", "confirm_with_user", "book_flight"],
+     "expected_outcome_contains": "confirmation number"},
+    <span class="c1"># ... more cases covering edge cases: no flights found, ambiguous dates, etc.</span>
+]
+
+<span class="k1">def</span> run_eval(agent, cases):
+    results = []
+    <span class="k1">for</span> case <span class="k1">in</span> cases:
+        trace = agent.run(case["input"], return_trace=<span class="k1">True</span>)
+        tool_sequence_ok = trace.tool_names == case["expected_tool_sequence"]
+        outcome_ok = case["expected_outcome_contains"] <span class="k1">in</span> trace.final_output
+        results.append({
+            "case": case["input"],
+            "trajectory_correct": tool_sequence_ok,
+            "outcome_correct": outcome_ok
+        })
+    <span class="k1">return</span> results
+
+<span class="c1"># Run this eval set every time you change the prompt, model version,</span>
+<span class="c1"># or tool definitions -- treat it exactly like a regression test suite.</span>
+</pre>
+    <h3>Using an LLM as a judge</h3>
+    <p>For outputs too open-ended to check with exact string matching (like the quality of a written summary), a common pattern is to use a second model call with a clear rubric to score the output -- while being aware this "LLM-as-judge" approach has its own biases and needs occasional human spot-checking to stay trustworthy.</p>
+    
+  </div>
+
+  <div data-panel="exercise" class="tabpanel">
+    
+    <div class="exercise-box">
+      <span class="lbl">Exercise 10.1 -- Build a mini eval set</span>
+      <h4>Write three test cases for a scheduling agent</h4>
+      <p>For an agent that books meetings, write three eval cases: one straightforward booking, one where the requested time conflicts with an existing meeting, and one where the user's request is ambiguous (e.g. "sometime next week"). For each, specify the expected tool sequence and a way to check the outcome.</p>
+      <details class="solution">
+        <summary>Show one possible answer</summary>
+        <p><strong>Case 1 (straightforward):</strong> expected tools: <code>check_availability</code> then <code>book_meeting</code>; outcome check: response contains a confirmation.<br>
+        <strong>Case 2 (conflict):</strong> expected tools: <code>check_availability</code> then a response offering alternate times, <em>not</em> <code>book_meeting</code>; outcome check: response mentions the conflict and proposes alternatives.<br>
+        <strong>Case 3 (ambiguous):</strong> expected behavior: agent asks a clarifying question rather than guessing a specific time; outcome check: response contains a question, and no booking tool was called.</p>
+      </details>
+    </div>
+    
+    <h3>Knowledge check</h3>
+    <div class="quiz"><div class="quiz-q"><p class="qtext">1. Why can't agent testing rely purely on 'run once and assert pass,' the way traditional unit tests do?</p><div class="quiz-opts"><button class="quiz-opt" data-correct="false" data-explain="Speed isn&#x27;t the core reason -- consistency is.">Agents are too slow to test</button><button class="quiz-opt" data-correct="true" data-explain="Correct -- this is why ongoing evaluation over a representative set of cases matters more than a single test run.">Model outputs can vary run-to-run, so a single pass/fail check doesn&#x27;t capture reliability</button><button class="quiz-opt" data-correct="false" data-explain="Agents absolutely produce checkable output -- the issue is variability across runs.">Agents don&#x27;t produce any output to check</button></div><div class="quiz-feedback"></div></div><div class="quiz-q"><p class="qtext">2. What does 'trajectory evaluation' check that a simple outcome check misses?</p><div class="quiz-opts"><button class="quiz-opt" data-correct="false" data-explain="Grammar isn&#x27;t the focus of trajectory evaluation.">Whether the final answer is grammatically correct</button><button class="quiz-opt" data-correct="true" data-explain="Correct -- a right answer reached through a risky or wrong process is still a real problem worth catching.">Whether the agent took a reasonable path (right tools, right order) to reach the answer</button><button class="quiz-opt" data-correct="false" data-explain="Latency is a separate metric from trajectory correctness.">How fast the agent responded</button></div><div class="quiz-feedback"></div></div><div class="quiz-q"><p class="qtext">3. What's a key caution when using an LLM to judge another agent's outputs ('LLM-as-judge')?</p><div class="quiz-opts"><button class="quiz-opt" data-correct="false" data-explain="This isn&#x27;t a legal issue -- it&#x27;s a methodology one.">It&#x27;s illegal in most jurisdictions</button><button class="quiz-opt" data-correct="true" data-explain="Correct -- LLM-as-judge is a useful scaling tool but not infallible on its own.">It has its own biases and should be spot-checked against human judgment periodically</button><button class="quiz-opt" data-correct="false" data-explain="LLM-as-judge is actually most commonly used for open-ended, qualitative outputs.">It only works for numeric outputs</button></div><div class="quiz-feedback"></div></div></div>
+  </div>
+
+  <div class="pagenav">
+    <a href="../modules/09-multi-agent-systems.html">← Multi-Agent Systems & Orchestration</a>
+    <a class="next" href="../modules/11-safety-guardrails.html">Safety, Guardrails & Human-in-the-Loop →</a>
+  </div>
+</div>
+
+<footer>
+  <div class="wrap row">
+    <div class="fine">AGENTIC AI COURSE — BUILD, DON'T JUST PROMPT.</div>
+    <div class="fine">14 MODULES · CODE LABS · 1 CAPSTONE · MIT-STYLE LICENSE FOR YOUR OWN COHORTS</div>
+  </div>
+</footer>
+<script src="../script.js"></script>
+</body>
+</html>

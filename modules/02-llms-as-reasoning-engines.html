@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>02 · The LLM as the Reasoning Core — Agentic AI Course</title>
+<meta name="description" content="Every agent is only as good as the decisions its underlying model makes. Understanding what the model is actually doing when it &#x27;reasons&#x27; will save you from building on top of a misunderstanding.">
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+
+<nav class="topnav">
+  <div class="wrap bar">
+    <a href="../index.html" class="brand"><span class="dot"></span>Agentic AI <span class="sub">/ COURSE v1.0</span></a>
+    <button class="navtoggle" aria-label="Menu">≡</button>
+    <div class="navlinks">
+      <a href="../index.html" class="">Home</a><a href="../curriculum.html" class="active">Curriculum</a><a href="../capstone.html" class="">Capstone</a><a href="../resources.html" class="">Resources</a>
+      <a href="../curriculum.html" class="cta">START LEARNING →</a>
+    </div>
+  </div>
+</nav>
+
+<header class="module-header">
+  <div class="wrap">
+    <div class="crumb"><a href="../curriculum.html">CURRICULUM</a> / MODULE 02</div>
+    <span class="phase-badge"><i style="background:#F0A93E"></i>REASON PHASE</span>
+    <h1>The LLM as the Reasoning Core</h1>
+    <p class="why">Every agent is only as good as the decisions its underlying model makes. Understanding what the model is actually doing when it 'reasons' will save you from building on top of a misunderstanding.</p>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="tabbar">
+    <button class="tabbtn active" data-tab="overview">01 · Overview</button>
+    <button class="tabbtn" data-tab="build">02 · Build</button>
+    <button class="tabbtn" data-tab="exercise">03 · Exercise &amp; Quiz</button>
+  </div>
+
+  <div data-panel="overview" class="tabpanel active">
+    
+    <p class="lede">An LLM does not know facts the way a database does, and it does not plan the way a chess engine does. It predicts plausible continuations of text, one token at a time -- and it turns out that "plausible continuation" is a surprisingly powerful substitute for reasoning, if you set the stage correctly.</p>
+    <h3>What the model can and cannot do reliably</h3>
+    <ul class="checklist">
+      <li><strong>Good at:</strong> pattern completion, summarizing, translating between formats, following worked examples, breaking a described problem into steps.</li>
+      <li><strong>Unreliable at:</strong> precise arithmetic on large numbers, knowing anything after its training cutoff, counting things exactly, guaranteeing factual accuracy without a source to ground it in.</li>
+      <li><strong>The fix in both cases is the same:</strong> give the model tools (a calculator, a search function, a clock) rather than asking it to simulate them from memory. This is the entire motivation for agentic design -- offload what the model is bad at to deterministic code, and reserve the model for what it is good at: judgment, language, and flexible reasoning.</li>
+    </ul>
+    <div class="callout">
+      <span class="lbl">Mental model</span>
+      <p>Think of the LLM as an extremely well-read intern with no long-term memory and no calculator, who is nonetheless excellent at reading a situation and deciding what to do next -- provided you hand them the right references.</p>
+    </div>
+    <div class="callout manager">
+      <span class="lbl">For managers</span>
+      <p>"The model got the number wrong" is usually not a model quality problem -- it is a missing-tool problem. If a task involves exact math, dates, or live data, the fix is to wire up a tool, not to wait for a smarter model.</p>
+    </div>
+    
+  </div>
+
+  <div data-panel="build" class="tabpanel">
+    
+    <p class="lede">Two techniques do most of the heavy lifting for getting reliable reasoning out of a model: chain-of-thought and self-consistency.</p>
+    <h3>Chain-of-thought (CoT)</h3>
+    <p>Simply asking a model to "think step by step" before answering measurably improves accuracy on multi-step problems, because it gives the model room to lay out intermediate reasoning as tokens it can then condition on -- rather than jumping straight to a final answer.</p>
+    <pre class="code"><span class="c1"># A system prompt fragment that encourages step-by-step reasoning</span>
+system_prompt = """
+You are a scheduling assistant. Before giving a final answer,
+think through the problem step by step inside &lt;thinking&gt; tags,
+then give your final answer inside &lt;answer&gt; tags.
+"""
+</pre>
+    <h3>Structured output</h3>
+    <p>Agents need the model's output in a predictable shape so code can parse it. Modern APIs support this natively via structured tool-calling schemas (covered in Module 4) rather than asking the model to "return JSON" and hoping.</p>
+    <pre class="code"><span class="c1"># Requesting a specific reasoning + answer structure</span>
+response = model.call(
+    system=system_prompt,
+    messages=[{"role": "user", "content": "Can I fit a 45-minute call between my 2pm and 3:15pm meetings?"}]
+)
+<span class="c1"># response.text contains &lt;thinking&gt;...&lt;/thinking&gt;&lt;answer&gt;...&lt;/answer&gt;</span>
+</pre>
+    <p>Later, when agents chain multiple steps, this reasoning trace becomes invaluable for debugging -- it is the difference between "the agent did something wrong" and "the agent decided X because it believed Y, which was wrong."</p>
+    
+  </div>
+
+  <div data-panel="exercise" class="tabpanel">
+    
+    <div class="exercise-box">
+      <span class="lbl">Exercise 2.1 -- Spot the failure mode</span>
+      <h4>Diagnose three broken agent behaviors</h4>
+      <p>For each scenario, decide whether the fix is (a) better prompting, (b) adding a tool, or (c) neither is fixable by the model alone:</p>
+      <ol>
+        <li>An agent asked to calculate compound interest over 30 years gives a plausible-looking but slightly wrong number.</li>
+        <li>An agent asked "what's the weather right now" confidently describes weather from during its training period.</li>
+        <li>An agent asked to summarize a document jumps straight to a shaky conclusion without showing its work.</li>
+      </ol>
+      <details class="solution">
+        <summary>Show suggested answers</summary>
+        <p>1. Add a tool -- wire up a calculator or code-execution tool for exact arithmetic.<br>
+        2. Add a tool -- wire up a live weather API; no amount of prompting fixes a knowledge cutoff.<br>
+        3. Better prompting -- ask explicitly for step-by-step reasoning before the conclusion (chain-of-thought).</p>
+      </details>
+    </div>
+    
+    <h3>Knowledge check</h3>
+    <div class="quiz"><div class="quiz-q"><p class="qtext">1. Why does asking a model to 'think step by step' often improve accuracy?</p><div class="quiz-opts"><button class="quiz-opt" data-correct="false" data-explain="There is no hidden calculator -- the model is still predicting text.">It makes the model access a hidden calculator</button><button class="quiz-opt" data-correct="true" data-explain="Correct -- laying out steps as text lets the model build toward a better answer incrementally.">It gives the model intermediate reasoning tokens to condition its final answer on</button><button class="quiz-opt" data-correct="false" data-explain="Chain-of-thought doesn&#x27;t change the context window size.">It increases the model&#x27;s context window</button></div><div class="quiz-feedback"></div></div><div class="quiz-q"><p class="qtext">2. A model confidently gives you 'today's' stock price. What is the most reliable fix?</p><div class="quiz-opts"><button class="quiz-opt" data-correct="false" data-explain="The model has no way to actually verify current data from memory alone.">Ask it to double-check its answer</button><button class="quiz-opt" data-correct="false" data-explain="No model can know live data purely from training -- this is a data-freshness problem, not a capability problem.">Use a bigger, smarter model</button><button class="quiz-opt" data-correct="true" data-explain="Right -- ground the answer in a real data source instead of the model&#x27;s memory.">Give it a tool that fetches the live price</button></div><div class="quiz-feedback"></div></div><div class="quiz-q"><p class="qtext">3. What's the main benefit of capturing a model's reasoning trace in agent logs?</p><div class="quiz-opts"><button class="quiz-opt" data-correct="false" data-explain="Logging reasoning doesn&#x27;t affect response speed.">It makes responses faster</button><button class="quiz-opt" data-correct="true" data-explain="Exactly -- this turns opaque failures into diagnosable ones.">It lets you debug *why* the agent made a decision, not just *what* it did</button><button class="quiz-opt" data-correct="false" data-explain="It&#x27;s a design choice, not a universal requirement.">It&#x27;s required by every LLM API</button></div><div class="quiz-feedback"></div></div></div>
+  </div>
+
+  <div class="pagenav">
+    <a href="../modules/01-what-are-ai-agents.html">← What Is an AI Agent, Really?</a>
+    <a class="next" href="../modules/03-prompting-for-agents.html">Prompting Patterns for Agents →</a>
+  </div>
+</div>
+
+<footer>
+  <div class="wrap row">
+    <div class="fine">AGENTIC AI COURSE — BUILD, DON'T JUST PROMPT.</div>
+    <div class="fine">14 MODULES · CODE LABS · 1 CAPSTONE · MIT-STYLE LICENSE FOR YOUR OWN COHORTS</div>
+  </div>
+</footer>
+<script src="../script.js"></script>
+</body>
+</html>

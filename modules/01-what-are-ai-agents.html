@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>01 · What Is an AI Agent, Really? — Agentic AI Course</title>
+<meta name="description" content="Before you build anything, you need a definition that survives contact with a whiteboard argument. This module gives you one, and the vocabulary the rest of the course depends on.">
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+
+<nav class="topnav">
+  <div class="wrap bar">
+    <a href="../index.html" class="brand"><span class="dot"></span>Agentic AI <span class="sub">/ COURSE v1.0</span></a>
+    <button class="navtoggle" aria-label="Menu">≡</button>
+    <div class="navlinks">
+      <a href="../index.html" class="">Home</a><a href="../curriculum.html" class="active">Curriculum</a><a href="../capstone.html" class="">Capstone</a><a href="../resources.html" class="">Resources</a>
+      <a href="../curriculum.html" class="cta">START LEARNING →</a>
+    </div>
+  </div>
+</nav>
+
+<header class="module-header">
+  <div class="wrap">
+    <div class="crumb"><a href="../curriculum.html">CURRICULUM</a> / MODULE 01</div>
+    <span class="phase-badge"><i style="background:#63D2C9"></i>PERCEIVE PHASE</span>
+    <h1>What Is an AI Agent, Really?</h1>
+    <p class="why">Before you build anything, you need a definition that survives contact with a whiteboard argument. This module gives you one, and the vocabulary the rest of the course depends on.</p>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="tabbar">
+    <button class="tabbtn active" data-tab="overview">01 · Overview</button>
+    <button class="tabbtn" data-tab="build">02 · Build</button>
+    <button class="tabbtn" data-tab="exercise">03 · Exercise &amp; Quiz</button>
+  </div>
+
+  <div data-panel="overview" class="tabpanel active">
+    
+    <p class="lede">A chatbot answers. An agent <em>acts</em>. That one-line distinction is the whole course — everything else is detail.</p>
+    <p>A large language model, on its own, is a very good next-word predictor. Ask it a question in a chat window and it replies with text. Nothing happens in the world. An <strong>agent</strong> wraps that same model in a loop that lets it observe a situation, decide what to do, actually do something (call a tool, run code, query a database, send an email), look at the result, and decide again. That loop — <strong>Perceive → Reason → Act → Reflect</strong> — is the spine of this entire course, and you'll see it tagged on every module.</p>
+    <h3>The four-part loop</h3>
+    <ul class="checklist">
+      <li><strong>Perceive</strong> — the agent gathers information: a user message, a document, an API response, the result of its last action.</li>
+      <li><strong>Reason</strong> — the model decides what the information means and what to do about it, often thinking step by step.</li>
+      <li><strong>Act</strong> — the agent takes a concrete action in the world: calling a tool, writing a file, hitting an API.</li>
+      <li><strong>Reflect</strong> — the agent (or a supervising system) checks whether the action worked, and whether to continue, retry, or stop.</li>
+    </ul>
+    <p>Almost every framework, pattern, and failure mode you will meet later is a variation on how tightly or loosely that loop is implemented.</p>
+    <div class="callout">
+      <span class="lbl">Key distinction</span>
+      <p>"Autonomous" doesn't mean "unsupervised." A well-designed agent has guardrails, approval points, and limits. Autonomy is about who decides the next step, not about removing human oversight entirely.</p>
+    </div>
+    <div class="callout manager">
+      <span class="lbl">For managers</span>
+      <p>When someone pitches you "an AI agent," ask three questions: what does it perceive, what actions can it actually take, and what happens when it's wrong. If they can't answer the third one, it's not ready for production.</p>
+    </div>
+    
+  </div>
+
+  <div data-panel="build" class="tabpanel">
+    
+    <p class="lede">Let's make the loop concrete with the smallest possible agent: one that can check the weather and decide whether to recommend an umbrella.</p>
+    <p>Even without any framework, an agent is just a loop around a model call, with a way for the model to request actions and a way for your code to run them:</p>
+    <pre class="code"><span class="c1"># pseudocode -- the agent loop, stripped to its essence</span>
+state = {"goal": "Tell the user if they need an umbrella today"}
+
+<span class="k1">while</span> not state["done"]:
+    <span class="c1"># 1. PERCEIVE -- give the model the current state</span>
+    response = model.call(system_prompt, state["history"])
+
+    <span class="c1"># 2. REASON -- the model decides: answer, or use a tool?</span>
+    <span class="k1">if</span> response.wants_tool:
+        <span class="c1"># 3. ACT -- your code executes the tool, not the model</span>
+        result = run_tool(response.tool_name, response.tool_args)
+        state["history"].append(result)
+    <span class="k1">else</span>:
+        <span class="c1"># 4. REFLECT -- model judged it has enough info to stop</span>
+        state["done"] = <span class="k1">True</span>
+        final_answer = response.text
+</pre>
+    <p>Notice what the model never does: it never calls the weather API directly. It only ever requests that a tool be called, in a structured format. Your code is the one thing standing between "the model wants to" and "it actually happened" -- which is exactly where your safety and business logic lives. We will build a real version of this loop with actual tool-calling in Module 4.</p>
+    <h3>Agents vs. workflows vs. chatbots</h3>
+    <p>These three get conflated constantly, so it is worth being precise:</p>
+    <ul class="checklist">
+      <li><strong>Chatbot</strong> -- perceives and reasons, but does not act. Output is text back to a human.</li>
+      <li><strong>Workflow / pipeline</strong> -- acts, but the sequence of actions is fixed by a human in advance.</li>
+      <li><strong>Agent</strong> -- acts, and the model itself decides the sequence and which tools to call, based on what it perceives at each step.</li>
+    </ul>
+    
+  </div>
+
+  <div data-panel="exercise" class="tabpanel">
+    
+    <div class="exercise-box">
+      <span class="lbl">Exercise 1.1 -- Classify the system</span>
+      <h4>Sort five real systems into chatbot / workflow / agent</h4>
+      <p>For each system below, decide which category it belongs to and write one sentence justifying your answer:</p>
+      <ol>
+        <li>A customer support widget that answers FAQ questions from a fixed knowledge base.</li>
+        <li>A nightly script that pulls sales data, generates a PDF, and emails it to the sales team.</li>
+        <li>A coding assistant that reads an error message, decides to search the codebase, edits a file, reruns the tests, and repeats until they pass.</li>
+        <li>A form that routes a support ticket to "Billing" or "Technical" based on keyword matching.</li>
+        <li>A research tool that, given a question, decides on its own whether to search the web, read a PDF, or ask you a clarifying question -- in whatever order it judges best.</li>
+      </ol>
+      <details class="solution">
+        <summary>Show suggested answers</summary>
+        <p>1. Chatbot -- perceives and reasons, no ability to act on anything outside the conversation.<br>
+        2. Workflow -- acts, but the sequence is fixed by a human, not decided by a model at runtime.<br>
+        3. Agent -- the model decides the next action based on the result of the last one; the loop is genuinely closed.<br>
+        4. Workflow (arguably not even AI) -- a fixed decision rule, not a reasoning loop.<br>
+        5. Agent -- the ordering and choice of tools is decided dynamically by the model itself.</p>
+      </details>
+    </div>
+    
+    <h3>Knowledge check</h3>
+    <div class="quiz"><div class="quiz-q"><p class="qtext">1. What is the single defining feature that separates an agent from a chatbot?</p><div class="quiz-opts"><button class="quiz-opt" data-correct="false" data-explain="Model size has nothing to do with the definition.">The agent uses a bigger model</button><button class="quiz-opt" data-correct="true" data-explain="Exactly -- the ability to act, and to decide what to act on, is the dividing line.">The agent can take actions in the world, not just produce text</button><button class="quiz-opt" data-correct="false" data-explain="Context length is an implementation detail, not a defining trait.">The agent has a longer context window</button></div><div class="quiz-feedback"></div></div><div class="quiz-q"><p class="qtext">2. In the Perceive -> Reason -> Act -> Reflect loop, who should actually execute a tool call?</p><div class="quiz-opts"><button class="quiz-opt" data-correct="false" data-explain="Models do not have hands -- they only request actions in structured text.">The model itself, directly</button><button class="quiz-opt" data-correct="true" data-explain="Correct -- this separation is exactly where safety checks and business logic live.">Your application code, based on the model&#x27;s structured request</button><button class="quiz-opt" data-correct="false" data-explain="That would defeat the purpose of automation, though it is a valid guardrail for high-risk actions.">The end user, manually</button></div><div class="quiz-feedback"></div></div><div class="quiz-q"><p class="qtext">3. A fixed nightly script that always runs steps 1, 2, 3 in the same order is best described as a:</p><div class="quiz-opts"><button class="quiz-opt" data-correct="false" data-explain="No dynamic decision-making happens here -- the order never changes.">Agent</button><button class="quiz-opt" data-correct="true" data-explain="Right -- the sequence is predetermined by a human, not chosen by a model at runtime.">Workflow</button><button class="quiz-opt" data-correct="false" data-explain="There is no conversational interface here at all.">Chatbot</button></div><div class="quiz-feedback"></div></div></div>
+  </div>
+
+  <div class="pagenav">
+    <a href="../curriculum.html">← Curriculum</a>
+    <a class="next" href="../modules/02-llms-as-reasoning-engines.html">The LLM as the Reasoning Core →</a>
+  </div>
+</div>
+
+<footer>
+  <div class="wrap row">
+    <div class="fine">AGENTIC AI COURSE — BUILD, DON'T JUST PROMPT.</div>
+    <div class="fine">14 MODULES · CODE LABS · 1 CAPSTONE · MIT-STYLE LICENSE FOR YOUR OWN COHORTS</div>
+  </div>
+</footer>
+<script src="../script.js"></script>
+</body>
+</html>

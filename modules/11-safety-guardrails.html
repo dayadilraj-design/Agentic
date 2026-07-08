@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>11 · Safety, Guardrails &amp; Human-in-the-Loop — Agentic AI Course</title>
+<meta name="description" content="The gap between a clever demo and a production agent is almost entirely made of guardrails. This module is the difference between an agent you can trust with real consequences and one you can&#x27;t.">
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+
+<nav class="topnav">
+  <div class="wrap bar">
+    <a href="../index.html" class="brand"><span class="dot"></span>Agentic AI <span class="sub">/ COURSE v1.0</span></a>
+    <button class="navtoggle" aria-label="Menu">≡</button>
+    <div class="navlinks">
+      <a href="../index.html" class="">Home</a><a href="../curriculum.html" class="active">Curriculum</a><a href="../capstone.html" class="">Capstone</a><a href="../resources.html" class="">Resources</a>
+      <a href="../curriculum.html" class="cta">START LEARNING →</a>
+    </div>
+  </div>
+</nav>
+
+<header class="module-header">
+  <div class="wrap">
+    <div class="crumb"><a href="../curriculum.html">CURRICULUM</a> / MODULE 11</div>
+    <span class="phase-badge"><i style="background:#9C8CF0"></i>REFLECT PHASE</span>
+    <h1>Safety, Guardrails & Human-in-the-Loop</h1>
+    <p class="why">The gap between a clever demo and a production agent is almost entirely made of guardrails. This module is the difference between an agent you can trust with real consequences and one you can't.</p>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="tabbar">
+    <button class="tabbtn active" data-tab="overview">01 · Overview</button>
+    <button class="tabbtn" data-tab="build">02 · Build</button>
+    <button class="tabbtn" data-tab="exercise">03 · Exercise &amp; Quiz</button>
+  </div>
+
+  <div data-panel="overview" class="tabpanel active">
+    
+    <p class="lede">Every capability you give an agent is also a risk surface. Safety in agentic systems isn't a single feature you bolt on -- it's a set of layered decisions about what the agent can do, what it must confirm first, and what it should never do at all.</p>
+    <h3>A layered approach to agent safety</h3>
+    <ul class="checklist">
+      <li><strong>Least privilege</strong> -- give each agent only the tools and data access it strictly needs for its task, nothing broader "just in case."</li>
+      <li><strong>Tiered autonomy</strong> -- classify actions by risk: fully autonomous (read a file), confirm-first (send an external email), always-human (anything involving money, legal exposure, or irreversible deletion).</li>
+      <li><strong>Input and output validation</strong> -- sanitize what goes into the agent (especially from untrusted sources like scraped web content) and validate what comes out before it triggers a real action.</li>
+      <li><strong>Rate and scope limits</strong> -- cap how many actions, how much spend, or how many API calls an agent can make in a session, so a bug or bad decision fails small instead of large.</li>
+      <li><strong>Auditability</strong> -- log every decision and tool call with enough detail to reconstruct exactly what happened and why, after the fact.</li>
+    </ul>
+    <div class="callout">
+      <span class="lbl">The prompt injection risk</span>
+      <p>An agent that reads untrusted content (a webpage, an email, a document from an external party) can have instructions embedded in that content mistaken for legitimate commands -- this is called prompt injection. Never let content an agent merely <em>reads</em> carry the same authority as an instruction from its actual operator; treat all fetched content as data, not commands.</p>
+    </div>
+    <div class="callout manager">
+      <span class="lbl">For managers</span>
+      <p>Before approving any agent with real-world side effects, ask specifically: what's the worst single action this agent could take, and what stops it from taking that action unsupervised? If there's no concrete answer, that's the first gap to close -- not a documentation exercise to do later.</p>
+    </div>
+    
+  </div>
+
+  <div data-panel="build" class="tabpanel">
+    
+    <p class="lede">Here's a tiered-autonomy pattern that gates risky tool calls behind human confirmation, without blocking low-risk ones.</p>
+    <pre class="code">TOOL_RISK_TIERS = {
+    "search_docs": "autonomous",
+    "read_file": "autonomous",
+    "send_email": "confirm_first",
+    "delete_record": "always_human",
+    "issue_refund": "always_human",
+}
+
+<span class="k1">def</span> execute_tool_call(tool_name, args, session):
+    tier = TOOL_RISK_TIERS.get(tool_name, "always_human")  <span class="c1"># unknown tools default to strictest tier</span>
+
+    <span class="k1">if</span> tier == "autonomous":
+        <span class="k1">return</span> run_tool(tool_name, args)
+
+    <span class="k1">if</span> tier == "confirm_first":
+        <span class="k1">if</span> session.get_user_confirmation(f"Agent wants to {tool_name} with {args}. Proceed?"):
+            <span class="k1">return</span> run_tool(tool_name, args)
+        <span class="k1">return</span> {"status": "declined_by_user"}
+
+    <span class="c1"># always_human tier: never auto-executed under any circumstance</span>
+    <span class="k1">return</span> {"status": "escalated", "message": "This action requires human execution"}
+</pre>
+    <h3>Defending against prompt injection</h3>
+    <p>Practical mitigations include: clearly delimiting untrusted content in the prompt (so the model can distinguish "data to read" from "instructions to follow"), stripping or flagging suspicious instruction-like text in fetched content, and never granting an agent that reads untrusted external content the same tool access as one that only handles trusted, internal input.</p>
+    
+  </div>
+
+  <div data-panel="exercise" class="tabpanel">
+    
+    <div class="exercise-box">
+      <span class="lbl">Exercise 11.1 -- Tier a real tool list</span>
+      <h4>Classify six tools by risk tier</h4>
+      <p>Assign each of the following tools to autonomous / confirm_first / always_human, and justify any that feel like a close call: <code>search_web</code>, <code>post_to_company_twitter</code>, <code>read_customer_record</code>, <code>update_customer_address</code>, <code>transfer_funds</code>, <code>generate_draft_reply</code>.</p>
+      <details class="solution">
+        <summary>Show one possible answer</summary>
+        <p><code>search_web</code> -- autonomous (read-only, low risk). <code>read_customer_record</code> -- autonomous, assuming proper access controls are already in place at the data layer. <code>generate_draft_reply</code> -- autonomous (drafting isn't sending). <code>update_customer_address</code> -- confirm_first (reversible but affects real records). <code>post_to_company_twitter</code> -- confirm_first (public-facing, reputational risk, but reversible by deleting). <code>transfer_funds</code> -- always_human (financial, often irreversible, highest stakes).</p>
+      </details>
+    </div>
+    
+    <h3>Knowledge check</h3>
+    <div class="quiz"><div class="quiz-q"><p class="qtext">1. What is 'prompt injection' in the context of an agent?</p><div class="quiz-opts"><button class="quiz-opt" data-correct="false" data-explain="This isn&#x27;t related to prompt injection at all.">A technique for making prompts shorter</button><button class="quiz-opt" data-correct="true" data-explain="Correct -- this is why fetched content should always be treated as data, not commands.">Instructions embedded in untrusted content that get mistaken for legitimate commands</button><button class="quiz-opt" data-correct="false" data-explain="Prompt injection is a security concern, not a training technique.">A method for fine-tuning a model faster</button></div><div class="quiz-feedback"></div></div><div class="quiz-q"><p class="qtext">2. What does 'least privilege' mean when designing an agent's tool access?</p><div class="quiz-opts"><button class="quiz-opt" data-correct="false" data-explain="This is the opposite of least privilege, and increases risk unnecessarily.">Give the agent every tool available, to maximize flexibility</button><button class="quiz-opt" data-correct="true" data-explain="Correct -- minimizing capability minimizes the blast radius of any mistake.">Give the agent only the tools and data access it strictly needs for its task</button><button class="quiz-opt" data-correct="false" data-explain="Least privilege means scoped access, not zero access -- an agent still needs the tools its task requires.">Give the agent no tools at all</button></div><div class="quiz-feedback"></div></div><div class="quiz-q"><p class="qtext">3. In a tiered-autonomy design, what should happen to a tool call for an unrecognized or unclassified tool?</p><div class="quiz-opts"><button class="quiz-opt" data-correct="false" data-explain="This is risky -- unknown tools should never default to the most permissive tier.">Default to fully autonomous execution for convenience</button><button class="quiz-opt" data-correct="true" data-explain="Correct -- failing safe means defaulting to the most conservative option when risk is unknown.">Default to the strictest tier (always human) until explicitly classified</button><button class="quiz-opt" data-correct="false" data-explain="Silently dropping a call can hide bugs and confuse debugging; explicit escalation is safer.">Ignore the tool call silently</button></div><div class="quiz-feedback"></div></div></div>
+  </div>
+
+  <div class="pagenav">
+    <a href="../modules/10-evaluation-debugging.html">← Evaluation, Testing & Debugging Agents</a>
+    <a class="next" href="../modules/12-deploying-agents.html">Deploying Agents to Production →</a>
+  </div>
+</div>
+
+<footer>
+  <div class="wrap row">
+    <div class="fine">AGENTIC AI COURSE — BUILD, DON'T JUST PROMPT.</div>
+    <div class="fine">14 MODULES · CODE LABS · 1 CAPSTONE · MIT-STYLE LICENSE FOR YOUR OWN COHORTS</div>
+  </div>
+</footer>
+<script src="../script.js"></script>
+</body>
+</html>

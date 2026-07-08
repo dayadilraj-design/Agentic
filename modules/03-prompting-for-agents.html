@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>03 · Prompting Patterns for Agents — Agentic AI Course</title>
+<meta name="description" content="System prompts for agents do more work than chatbot prompts ever did -- they define identity, boundaries, available tools, and how to handle uncertainty. Get this wrong and everything downstream inherits the problem.">
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+
+<nav class="topnav">
+  <div class="wrap bar">
+    <a href="../index.html" class="brand"><span class="dot"></span>Agentic AI <span class="sub">/ COURSE v1.0</span></a>
+    <button class="navtoggle" aria-label="Menu">≡</button>
+    <div class="navlinks">
+      <a href="../index.html" class="">Home</a><a href="../curriculum.html" class="active">Curriculum</a><a href="../capstone.html" class="">Capstone</a><a href="../resources.html" class="">Resources</a>
+      <a href="../curriculum.html" class="cta">START LEARNING →</a>
+    </div>
+  </div>
+</nav>
+
+<header class="module-header">
+  <div class="wrap">
+    <div class="crumb"><a href="../curriculum.html">CURRICULUM</a> / MODULE 03</div>
+    <span class="phase-badge"><i style="background:#F0A93E"></i>REASON PHASE</span>
+    <h1>Prompting Patterns for Agents</h1>
+    <p class="why">System prompts for agents do more work than chatbot prompts ever did -- they define identity, boundaries, available tools, and how to handle uncertainty. Get this wrong and everything downstream inherits the problem.</p>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="tabbar">
+    <button class="tabbtn active" data-tab="overview">01 · Overview</button>
+    <button class="tabbtn" data-tab="build">02 · Build</button>
+    <button class="tabbtn" data-tab="exercise">03 · Exercise &amp; Quiz</button>
+  </div>
+
+  <div data-panel="overview" class="tabpanel active">
+    
+    <p class="lede">A chatbot's system prompt sets tone. An agent's system prompt sets <em>behavior under ambiguity</em> -- what it should do when a tool fails, when instructions conflict, or when it is not sure it has enough information.</p>
+    <h3>What an agent's system prompt needs to cover</h3>
+    <ul class="checklist">
+      <li><strong>Role and scope</strong> -- what the agent is for, and just as importantly, what it is not for.</li>
+      <li><strong>Available tools</strong> -- what each tool does, when to use it, and when not to.</li>
+      <li><strong>Stopping conditions</strong> -- how the agent knows it is done, so it doesn't loop forever or stop too early.</li>
+      <li><strong>Failure handling</strong> -- what to do if a tool call errors, returns nothing, or returns something unexpected.</li>
+      <li><strong>Escalation rules</strong> -- when to ask a human instead of guessing or acting.</li>
+    </ul>
+    <div class="callout">
+      <span class="lbl">Pattern: ReAct</span>
+      <p>ReAct (Reason + Act) is the most common agent prompting pattern: the model alternates between writing out a reasoning step and taking an action, observing the result before reasoning again. It is simple, transparent, and forms the backbone of most agent frameworks you'll meet in Module 8.</p>
+    </div>
+    <div class="callout manager">
+      <span class="lbl">For managers</span>
+      <p>A surprising amount of "AI agent" project risk lives in the system prompt, not the model. Ask to see it. If it doesn't specify what happens on failure, that's a gap worth closing before launch.</p>
+    </div>
+    
+  </div>
+
+  <div data-panel="build" class="tabpanel">
+    
+    <p class="lede">Here is a realistic system prompt skeleton for a support-ticket triage agent, annotated to show what each section is doing.</p>
+    <pre class="code">system_prompt = """
+You are a support ticket triage agent for Acme Software.
+
+<span class="c1"># ROLE AND SCOPE</span>
+Your job is to read incoming tickets, categorize them, and either
+resolve simple ones directly or route complex ones to a human.
+You do not have access to billing systems or the ability to issue refunds.
+
+<span class="c1"># AVAILABLE TOOLS</span>
+- search_kb(query): search the internal knowledge base
+- create_ticket(category, priority, summary): file a ticket for a human
+- reply_to_customer(message): send a message back to the customer
+
+<span class="c1"># STOPPING CONDITIONS</span>
+Stop and reply once you have either fully resolved the issue using
+the knowledge base, or filed a ticket with enough detail for a human
+to pick it up without re-asking the customer basic questions.
+
+<span class="c1"># FAILURE HANDLING</span>
+If search_kb returns no relevant results after 2 attempts with
+different queries, file a ticket rather than guessing an answer.
+
+<span class="c1"># ESCALATION</span>
+Any mention of legal threats, safety issues, or refund requests over
+$500 must be filed as priority "urgent" and never answered directly.
+"""
+</pre>
+    <p>Notice this prompt spends most of its words on edge cases, not the happy path -- that is deliberate. The happy path (customer asks a simple question, KB has the answer) needs almost no guidance. The value of a well-written agent prompt is entirely in how it behaves when things are not simple.</p>
+    <h3>Few-shot examples still matter</h3>
+    <p>For agents with nuanced judgment calls (like the $500 refund threshold above), showing 2-3 worked examples of correct tool choices in ambiguous cases outperforms describing the rule in the abstract.</p>
+    
+  </div>
+
+  <div data-panel="exercise" class="tabpanel">
+    
+    <div class="exercise-box">
+      <span class="lbl">Exercise 3.1 -- Write the missing sections</span>
+      <h4>Harden a thin system prompt</h4>
+      <p>You are given this system prompt for a travel-booking agent:</p>
+      <p><em>"You are a travel booking assistant. You can search flights and book them for the user."</em></p>
+      <p>Rewrite it to add: (1) a spending limit escalation rule, (2) a failure-handling instruction for when the flight search API times out, and (3) a stopping condition. Aim for 6-10 sentences total.</p>
+      <details class="solution">
+        <summary>Show one possible answer</summary>
+        <p>"You are a travel booking assistant. You can search flights using search_flights() and book them using book_flight(). Never book a flight over $800 without first presenting options and getting explicit user confirmation of the exact flight and price. If search_flights() times out or errors, retry once; if it fails again, tell the user you're unable to search right now rather than guessing at flight availability. Consider the task complete once you have either booked a confirmed flight and shown the confirmation number, or determined that no suitable flight exists and explained why."</p>
+      </details>
+    </div>
+    
+    <h3>Knowledge check</h3>
+    <div class="quiz"><div class="quiz-q"><p class="qtext">1. What does the ReAct pattern alternate between?</p><div class="quiz-opts"><button class="quiz-opt" data-correct="false" data-explain="ReAct is a prompting pattern for a single model, not a multi-model setup.">Two different models</button><button class="quiz-opt" data-correct="true" data-explain="Correct -- that alternation is exactly what &#x27;ReAct&#x27; stands for.">Reasoning steps and actions, observing results in between</button><button class="quiz-opt" data-correct="false" data-explain="ReAct isn&#x27;t about language switching.">English and code</button></div><div class="quiz-feedback"></div></div><div class="quiz-q"><p class="qtext">2. Why do most of the words in a good agent system prompt address edge cases rather than the happy path?</p><div class="quiz-opts"><button class="quiz-opt" data-correct="false" data-explain="Rarity isn&#x27;t really the reason -- ambiguity is.">Because edge cases are rarer, so they need more explanation</button><button class="quiz-opt" data-correct="true" data-explain="Exactly -- that&#x27;s where a prompt earns its keep.">Because the happy path needs little guidance; failure and ambiguity handling is where judgment calls live</button><button class="quiz-opt" data-correct="false" data-explain="Prompt length itself isn&#x27;t the mechanism here.">Because models ignore short prompts</button></div><div class="quiz-feedback"></div></div><div class="quiz-q"><p class="qtext">3. A support agent has no tool for issuing refunds. What should its system prompt do about refund requests?</p><div class="quiz-opts"><button class="quiz-opt" data-correct="false" data-explain="This would be a fabricated action with no real effect -- a serious failure mode.">Instruct it to apologize and make up a refund confirmation</button><button class="quiz-opt" data-correct="true" data-explain="Correct -- the agent should never simulate an action it cannot actually perform.">Instruct it to escalate refund requests to a human or a tool that actually has that capability</button><button class="quiz-opt" data-correct="false" data-explain="Unspecified behavior around money is exactly the kind of gap that causes real incidents.">Leave it unspecified and let the model improvise</button></div><div class="quiz-feedback"></div></div></div>
+  </div>
+
+  <div class="pagenav">
+    <a href="../modules/02-llms-as-reasoning-engines.html">← The LLM as the Reasoning Core</a>
+    <a class="next" href="../modules/04-tool-use-function-calling.html">Tool Use & Function Calling →</a>
+  </div>
+</div>
+
+<footer>
+  <div class="wrap row">
+    <div class="fine">AGENTIC AI COURSE — BUILD, DON'T JUST PROMPT.</div>
+    <div class="fine">14 MODULES · CODE LABS · 1 CAPSTONE · MIT-STYLE LICENSE FOR YOUR OWN COHORTS</div>
+  </div>
+</footer>
+<script src="../script.js"></script>
+</body>
+</html>

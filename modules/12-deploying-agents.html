@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>12 · Deploying Agents to Production — Agentic AI Course</title>
+<meta name="description" content="A working agent in a notebook and a working agent in production are two different engineering problems. This module covers the gap: cost, latency, monitoring, and graceful degradation.">
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+
+<nav class="topnav">
+  <div class="wrap bar">
+    <a href="../index.html" class="brand"><span class="dot"></span>Agentic AI <span class="sub">/ COURSE v1.0</span></a>
+    <button class="navtoggle" aria-label="Menu">≡</button>
+    <div class="navlinks">
+      <a href="../index.html" class="">Home</a><a href="../curriculum.html" class="active">Curriculum</a><a href="../capstone.html" class="">Capstone</a><a href="../resources.html" class="">Resources</a>
+      <a href="../curriculum.html" class="cta">START LEARNING →</a>
+    </div>
+  </div>
+</nav>
+
+<header class="module-header">
+  <div class="wrap">
+    <div class="crumb"><a href="../curriculum.html">CURRICULUM</a> / MODULE 12</div>
+    <span class="phase-badge"><i style="background:#E8695E"></i>ACT PHASE</span>
+    <h1>Deploying Agents to Production</h1>
+    <p class="why">A working agent in a notebook and a working agent in production are two different engineering problems. This module covers the gap: cost, latency, monitoring, and graceful degradation.</p>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="tabbar">
+    <button class="tabbtn active" data-tab="overview">01 · Overview</button>
+    <button class="tabbtn" data-tab="build">02 · Build</button>
+    <button class="tabbtn" data-tab="exercise">03 · Exercise &amp; Quiz</button>
+  </div>
+
+  <div data-panel="overview" class="tabpanel active">
+    
+    <p class="lede">Production agents need to handle the same concerns as any other production service -- uptime, cost control, observability -- plus a few that are specific to LLM-driven systems, like unpredictable step counts and non-deterministic behavior.</p>
+    <h3>Production concerns specific to agents</h3>
+    <ul class="checklist">
+      <li><strong>Cost control</strong> -- an agent that loops indefinitely on a hard task can burn far more tokens than expected; set hard caps on steps, tokens, and tool calls per session.</li>
+      <li><strong>Latency</strong> -- multi-step agent tasks are inherently slower than a single model call; design the UX around this (streaming partial progress, "agent is working on step 2 of 4") rather than a single long spinner.</li>
+      <li><strong>Graceful degradation</strong> -- decide what happens when a tool is down, the model API is rate-limited, or the agent hits its step cap without finishing -- these should produce a clear, honest message, never a silent failure or a fabricated success.</li>
+      <li><strong>Observability</strong> -- log full reasoning traces and tool calls (subject to your privacy policy), not just final outputs, so incidents are debuggable after the fact.</li>
+      <li><strong>Versioning</strong> -- treat prompts, tool schemas, and model versions as versioned artifacts with rollback capability, exactly like application code.</li>
+    </ul>
+    <div class="callout">
+      <span class="lbl">Rollout strategy</span>
+      <p>Ship agent changes the way you'd ship any other risky change: behind a feature flag, to a small percentage of traffic first, with your eval set (Module 10) run as an automated gate before wider rollout.</p>
+    </div>
+    <div class="callout manager">
+      <span class="lbl">For managers</span>
+      <p>Ask for a per-session cost estimate and a worst-case cost estimate (what happens if the agent hits max steps on every request) before approving a launch -- these numbers are often very different, and only one of them shows up in a demo.</p>
+    </div>
+    
+  </div>
+
+  <div data-panel="build" class="tabpanel">
+    
+    <p class="lede">A production-shaped agent loop adds hard limits and structured logging around the core loop from Module 1.</p>
+    <pre class="code">MAX_STEPS = 10
+MAX_TOKENS_PER_SESSION = 50_000
+
+<span class="k1">def</span> run_agent(goal, session_id):
+    steps_taken = 0
+    tokens_used = 0
+    trace = []
+
+    <span class="k1">while</span> steps_taken < MAX_STEPS <span class="k1">and</span> tokens_used < MAX_TOKENS_PER_SESSION:
+        response = model.call(system_prompt, history)
+        tokens_used += response.usage.total_tokens
+        trace.append({"step": steps_taken, "action": response.summary()})  <span class="c1"># observability</span>
+
+        <span class="k1">if</span> response.is_final:
+            log_success(session_id, trace)
+            <span class="k1">return</span> response.text
+
+        <span class="k1">try</span>:
+            result = run_tool(response.tool_name, response.tool_args)
+        <span class="k1">except</span> ToolError <span class="k1">as</span> e:
+            trace.append({"step": steps_taken, "error": str(e)})
+            <span class="c1"># feed the error back so the model can adapt, rather than crashing</span>
+            history.append(format_error(e))
+
+        steps_taken += 1
+
+    <span class="c1"># hit a limit without finishing -- degrade honestly, never fabricate success</span>
+    log_incomplete(session_id, trace)
+    <span class="k1">return</span> "I wasn't able to complete this within my step budget. Here's what I found so far: ..."
+</pre>
+    
+  </div>
+
+  <div data-panel="exercise" class="tabpanel">
+    
+    <div class="exercise-box">
+      <span class="lbl">Exercise 12.1 -- Design a rollout plan</span>
+      <h4>Plan the launch of an internal agent that drafts customer replies</h4>
+      <p>Write a short rollout plan covering: what percentage of traffic it starts with, what metric decides whether to expand the rollout, and what the fallback behavior is if the agent errors out mid-session.</p>
+      <details class="solution">
+        <summary>Show one possible answer</summary>
+        <p>Start at 5% of internal support tickets, agent output shown as a suggested draft that a human must approve before sending (never auto-sent at this stage). Expand rollout only if the eval-set pass rate stays above a set threshold (e.g. 90%) and human edit rate on drafts stays below a set threshold across at least a week of real traffic. Fallback: if the agent errors or times out, the ticket routes to the normal human queue with no visible disruption to the customer.</p>
+      </details>
+    </div>
+    
+    <h3>Knowledge check</h3>
+    <div class="quiz"><div class="quiz-q"><p class="qtext">1. Why do agents need hard caps on steps and tokens per session in production?</p><div class="quiz-opts"><button class="quiz-opt" data-correct="false" data-explain="Caps are a cost and safety control, not an accuracy mechanism.">To make responses more accurate</button><button class="quiz-opt" data-correct="true" data-explain="Correct -- without limits, a hard or ambiguous task can spiral into runaway spend.">To prevent a stuck or looping agent from consuming unbounded cost</button><button class="quiz-opt" data-correct="false" data-explain="This is a design choice you make, not typically an API-enforced requirement.">Because the model API requires it</button></div><div class="quiz-feedback"></div></div><div class="quiz-q"><p class="qtext">2. What should an agent do if it hits its step limit without completing the task?</p><div class="quiz-opts"><button class="quiz-opt" data-correct="false" data-explain="This is a serious failure mode -- never present a fabricated success as real.">Fabricate a plausible-sounding successful result</button><button class="quiz-opt" data-correct="true" data-explain="Correct -- graceful, honest degradation beats a confident wrong answer every time.">Report honestly that it couldn&#x27;t finish, along with whatever partial progress it made</button><button class="quiz-opt" data-correct="false" data-explain="Silent failures are hard to debug and provide no value to the user.">Silently return an empty response</button></div><div class="quiz-feedback"></div></div><div class="quiz-q"><p class="qtext">3. What's a sound way to roll out a change to a production agent's prompt or tools?</p><div class="quiz-opts"><button class="quiz-opt" data-correct="false" data-explain="This skips the safety net of catching regressions on a small slice first.">Deploy directly to 100% of traffic immediately</button><button class="quiz-opt" data-correct="true" data-explain="Correct -- treat agent changes with the same rigor as any other risky software change.">Ship behind a feature flag to a small percentage first, gated by your eval set</button><button class="quiz-opt" data-correct="false" data-explain="Non-determinism is a reason to test more carefully with representative eval sets, not less.">Skip testing since agents are non-deterministic anyway</button></div><div class="quiz-feedback"></div></div></div>
+  </div>
+
+  <div class="pagenav">
+    <a href="../modules/11-safety-guardrails.html">← Safety, Guardrails & Human-in-the-Loop</a>
+    <a class="next" href="../modules/13-business-case-roi.html">The Business Case: ROI, Scoping & Change Management →</a>
+  </div>
+</div>
+
+<footer>
+  <div class="wrap row">
+    <div class="fine">AGENTIC AI COURSE — BUILD, DON'T JUST PROMPT.</div>
+    <div class="fine">14 MODULES · CODE LABS · 1 CAPSTONE · MIT-STYLE LICENSE FOR YOUR OWN COHORTS</div>
+  </div>
+</footer>
+<script src="../script.js"></script>
+</body>
+</html>

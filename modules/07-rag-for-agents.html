@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>07 · Retrieval-Augmented Generation (RAG) for Agents — Agentic AI Course</title>
+<meta name="description" content="Agents that reason over your company&#x27;s actual documents -- not just the model&#x27;s training data -- need RAG. It&#x27;s the single most common way to ground an agent in real, current, private information.">
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+
+<nav class="topnav">
+  <div class="wrap bar">
+    <a href="../index.html" class="brand"><span class="dot"></span>Agentic AI <span class="sub">/ COURSE v1.0</span></a>
+    <button class="navtoggle" aria-label="Menu">≡</button>
+    <div class="navlinks">
+      <a href="../index.html" class="">Home</a><a href="../curriculum.html" class="active">Curriculum</a><a href="../capstone.html" class="">Capstone</a><a href="../resources.html" class="">Resources</a>
+      <a href="../curriculum.html" class="cta">START LEARNING →</a>
+    </div>
+  </div>
+</nav>
+
+<header class="module-header">
+  <div class="wrap">
+    <div class="crumb"><a href="../curriculum.html">CURRICULUM</a> / MODULE 07</div>
+    <span class="phase-badge"><i style="background:#63D2C9"></i>PERCEIVE PHASE</span>
+    <h1>Retrieval-Augmented Generation (RAG) for Agents</h1>
+    <p class="why">Agents that reason over your company's actual documents -- not just the model's training data -- need RAG. It's the single most common way to ground an agent in real, current, private information.</p>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="tabbar">
+    <button class="tabbtn active" data-tab="overview">01 · Overview</button>
+    <button class="tabbtn" data-tab="build">02 · Build</button>
+    <button class="tabbtn" data-tab="exercise">03 · Exercise &amp; Quiz</button>
+  </div>
+
+  <div data-panel="overview" class="tabpanel active">
+    
+    <p class="lede">RAG answers a simple problem: your documents aren't in the model's training data, and you can't fit your entire knowledge base into every prompt. The fix is to search for the relevant few passages at query time, and only inject those.</p>
+    <h3>The RAG pipeline, end to end</h3>
+    <ul class="checklist">
+      <li><strong>Chunk</strong> -- split documents into passages small enough to retrieve individually (typically a few hundred words).</li>
+      <li><strong>Embed</strong> -- convert each chunk into a vector that captures its meaning.</li>
+      <li><strong>Store</strong> -- index those vectors in a vector database for fast similarity search.</li>
+      <li><strong>Retrieve</strong> -- at query time, embed the user's question and fetch the most similar chunks.</li>
+      <li><strong>Generate</strong> -- feed those chunks into the model's context alongside the question, and ask it to answer grounded only in what was retrieved.</li>
+    </ul>
+    <div class="callout">
+      <span class="lbl">RAG in an agent vs. a chatbot</span>
+      <p>In a simple chatbot, RAG usually happens once per turn. In an agent, retrieval becomes a <em>tool</em> the model can call repeatedly and adaptively -- searching again with a refined query if the first results weren't good enough, which is a meaningfully more powerful pattern.</p>
+    </div>
+    <div class="callout manager">
+      <span class="lbl">For managers</span>
+      <p>"Hallucination" complaints about an internal AI tool are very often a retrieval problem, not a model problem -- the right document existed but wasn't found. Before blaming the model, check what was actually retrieved for that query.</p>
+    </div>
+    
+  </div>
+
+  <div data-panel="build" class="tabpanel">
+    
+    <p class="lede">Here's a RAG-as-a-tool setup, which lets an agent decide when and how many times to search.</p>
+    <pre class="code"><span class="c1"># Define retrieval as a callable tool, just like any other</span>
+tools = [{
+    "name": "search_docs",
+    "description": "Search internal documentation for relevant passages",
+    "input_schema": {
+        "type": "object",
+        "properties": {"query": {"type": "string"}},
+        "required": ["query"]
+    }
+}]
+
+<span class="k1">def</span> search_docs(query):
+    query_vector = embed_model.encode(query)
+    results = vector_store.query(vector=query_vector, top_k=5)
+    <span class="k1">return</span> [r.metadata["text"] <span class="k1">for</span> r <span class="k1">in</span> results]
+
+<span class="c1"># The agent loop treats this exactly like the weather tool from Module 4 --</span>
+<span class="c1"># the model decides when to call it, and can call it again with a</span>
+<span class="c1"># refined query if the first results don't fully answer the question.</span>
+</pre>
+    <h3>Chunking strategy matters more than people expect</h3>
+    <p>Chunks that are too large dilute relevance (the right sentence gets buried among irrelevant ones); chunks that are too small lose context (a fact separated from the heading that explains it). A common starting point is 200-500 word chunks with modest overlap between them, then tuning based on retrieval quality on real queries.</p>
+    
+  </div>
+
+  <div data-panel="exercise" class="tabpanel">
+    
+    <div class="exercise-box">
+      <span class="lbl">Exercise 7.1 -- Debug a bad RAG answer</span>
+      <h4>Diagnose why an agent gave a wrong answer from your own docs</h4>
+      <p>An internal HR agent, asked "how many vacation days do senior engineers get," answers incorrectly even though the correct number is in your handbook. Walk through the pipeline (chunk / embed / store / retrieve / generate) and list one concrete thing to check at each stage.</p>
+      <details class="solution">
+        <summary>Show one possible answer</summary>
+        <p><strong>Chunk:</strong> is the vacation policy split across two chunks, separating "senior engineer" from the actual number? <strong>Embed:</strong> does the embedding model handle role-specific terms like "senior engineer" well, or is it too generic? <strong>Store:</strong> is the handbook actually indexed, or is it an older version? <strong>Retrieve:</strong> print the top_k chunks for this exact query -- is the right passage even coming back? <strong>Generate:</strong> if the right chunk was retrieved but the answer is still wrong, the issue is prompting (the model may be ignoring the retrieved context), not retrieval.</p>
+      </details>
+    </div>
+    
+    <h3>Knowledge check</h3>
+    <div class="quiz"><div class="quiz-q"><p class="qtext">1. What problem does RAG primarily solve?</p><div class="quiz-opts"><button class="quiz-opt" data-correct="false" data-explain="Speed isn&#x27;t the core motivation for RAG.">Making the model respond faster</button><button class="quiz-opt" data-correct="true" data-explain="Correct -- retrieval narrows a large knowledge base down to just the relevant few passages.">Grounding answers in documents the model wasn&#x27;t trained on, without needing to fit them all in the prompt</button><button class="quiz-opt" data-correct="false" data-explain="RAG can affect cost, but that&#x27;s not its primary purpose.">Reducing the cost of running the model</button></div><div class="quiz-feedback"></div></div><div class="quiz-q"><p class="qtext">2. In an agentic (rather than single-shot) RAG setup, what capability does the model gain?</p><div class="quiz-opts"><button class="quiz-opt" data-correct="true" data-explain="Exactly -- treating retrieval as a tool lets the agent iterate on its search.">It can search multiple times with refined queries based on what it&#x27;s seen so far</button><button class="quiz-opt" data-correct="false" data-explain="The vector store is still the retrieval mechanism -- only how it&#x27;s called changes.">It no longer needs a vector database</button><button class="quiz-opt" data-correct="false" data-explain="Agentic retrieval doesn&#x27;t fix upstream data quality issues on its own.">It automatically fixes bad chunking</button></div><div class="quiz-feedback"></div></div><div class="quiz-q"><p class="qtext">3. A user gets a wrong answer even though the correct fact is in your knowledge base. What should you check first?</p><div class="quiz-opts"><button class="quiz-opt" data-correct="false" data-explain="Jumping straight to &#x27;replace the model&#x27; skips a much more likely and cheaper diagnosis.">Immediately assume the model is hallucinating and needs replacing</button><button class="quiz-opt" data-correct="true" data-explain="Correct -- this is the most common root cause and the cheapest thing to check first.">Whether the retrieval step actually surfaced the relevant chunk for that query</button><button class="quiz-opt" data-correct="false" data-explain="Temperature affects response variability, not whether the right information was retrieved.">Increase the model&#x27;s temperature setting</button></div><div class="quiz-feedback"></div></div></div>
+  </div>
+
+  <div class="pagenav">
+    <a href="../modules/06-planning-and-reasoning.html">← Planning: Task Decomposition & Multi-Step Reasoning</a>
+    <a class="next" href="../modules/08-agent-frameworks.html">A Tour of Agent Frameworks →</a>
+  </div>
+</div>
+
+<footer>
+  <div class="wrap row">
+    <div class="fine">AGENTIC AI COURSE — BUILD, DON'T JUST PROMPT.</div>
+    <div class="fine">14 MODULES · CODE LABS · 1 CAPSTONE · MIT-STYLE LICENSE FOR YOUR OWN COHORTS</div>
+  </div>
+</footer>
+<script src="../script.js"></script>
+</body>
+</html>

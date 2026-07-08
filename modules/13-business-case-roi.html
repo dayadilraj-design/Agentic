@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>13 · The Business Case: ROI, Scoping &amp; Change Management — Agentic AI Course</title>
+<meta name="description" content="Technical skill alone doesn&#x27;t ship an agent. Someone has to decide it&#x27;s worth building, scope it correctly, and manage what changes for the people whose work it touches.">
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+
+<nav class="topnav">
+  <div class="wrap bar">
+    <a href="../index.html" class="brand"><span class="dot"></span>Agentic AI <span class="sub">/ COURSE v1.0</span></a>
+    <button class="navtoggle" aria-label="Menu">≡</button>
+    <div class="navlinks">
+      <a href="../index.html" class="">Home</a><a href="../curriculum.html" class="active">Curriculum</a><a href="../capstone.html" class="">Capstone</a><a href="../resources.html" class="">Resources</a>
+      <a href="../curriculum.html" class="cta">START LEARNING →</a>
+    </div>
+  </div>
+</nav>
+
+<header class="module-header">
+  <div class="wrap">
+    <div class="crumb"><a href="../curriculum.html">CURRICULUM</a> / MODULE 13</div>
+    <span class="phase-badge"><i style="background:#9C8CF0"></i>REFLECT PHASE</span>
+    <h1>The Business Case: ROI, Scoping & Change Management</h1>
+    <p class="why">Technical skill alone doesn't ship an agent. Someone has to decide it's worth building, scope it correctly, and manage what changes for the people whose work it touches.</p>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="tabbar">
+    <button class="tabbtn active" data-tab="overview">01 · Overview</button>
+    <button class="tabbtn" data-tab="build">02 · Build</button>
+    <button class="tabbtn" data-tab="exercise">03 · Exercise &amp; Quiz</button>
+  </div>
+
+  <div data-panel="overview" class="tabpanel active">
+    
+    <p class="lede">This module is written for anyone who needs to greenlight, scope, or manage the rollout of an agentic project -- not just the people writing the code.</p>
+    <h3>Scoping an agent project realistically</h3>
+    <ul class="checklist">
+      <li><strong>Start with a bounded, well-understood task</strong>, not "automate customer support." A good first project has a clear success metric and a human fallback that already exists.</li>
+      <li><strong>Estimate cost realistically</strong>: per-session token cost x expected session volume x expected steps per session, using the worst-case step count from Module 12, not just the best case seen in a demo.</li>
+      <li><strong>Identify the human role that changes</strong>, not just the one that's "replaced." Most successful agent deployments shift a human from doing a task to reviewing or handling the exceptions the agent escalates -- plan for that new role explicitly.</li>
+      <li><strong>Define what "good enough" means before launch</strong>, using the eval set from Module 10 -- not "let's see how it feels once it's live."</li>
+    </ul>
+    <div class="callout">
+      <span class="lbl">The most common failure isn't technical</span>
+      <p>Many agentic AI projects don't fail because the agent doesn't work -- they fail because nobody defined what success looked like, nobody planned for the exceptions the agent would surface, or the people whose workflow changed weren't brought in early enough to trust it.</p>
+    </div>
+    <div class="callout manager">
+      <span class="lbl">For managers</span>
+      <p>Treat an agent rollout as a change management project with a technical component, not a technical project with a rollout attached. The team who will live with the agent day to day should help define its escalation rules (Module 11), not just receive them.</p>
+    </div>
+    
+  </div>
+
+  <div data-panel="build" class="tabpanel">
+    
+    <p class="lede">Even non-engineers benefit from being able to read a rough cost model, since it's usually the deciding factor in whether a project is viable at scale.</p>
+    <pre class="code"><span class="c1"># A back-of-envelope cost model for a support-triage agent</span>
+sessions_per_month = 20_000
+avg_steps_per_session = 4          <span class="c1"># typical, not worst case</span>
+avg_tokens_per_step = 1_500        <span class="c1"># input + output combined</span>
+cost_per_1k_tokens = 0.01          <span class="c1"># illustrative, check current model pricing</span>
+
+monthly_cost = (
+    sessions_per_month * avg_steps_per_session * avg_tokens_per_step / 1000
+) * cost_per_1k_tokens
+
+<span class="c1"># Always also compute the worst case: what if every session hits</span>
+<span class="c1"># the max_steps cap from Module 12? That's your real budget ceiling.</span>
+worst_case_cost = (
+    sessions_per_month * MAX_STEPS * avg_tokens_per_step / 1000
+) * cost_per_1k_tokens
+</pre>
+    <p>Present both numbers to stakeholders, not just the typical case -- the gap between them is exactly the risk a step-cap and good prompt design (Modules 3 and 12) are meant to control.</p>
+    <h3>A simple scoping checklist for a first agent project</h3>
+    <ul class="checklist">
+      <li>Is there a clear, measurable definition of success?</li>
+      <li>Is there an existing human fallback for when the agent can't handle something?</li>
+      <li>Have the people doing this work today been involved in defining the escalation rules?</li>
+      <li>Is there a realistic cost estimate, including the worst case?</li>
+    </ul>
+    
+  </div>
+
+  <div data-panel="exercise" class="tabpanel">
+    
+    <div class="exercise-box">
+      <span class="lbl">Exercise 13.1 -- Scope a first project</span>
+      <h4>Apply the scoping checklist to a real proposal</h4>
+      <p>A colleague proposes: "Let's build an agent that handles all inbound customer emails end to end." Using the checklist above, identify what's missing from this proposal and rewrite it as a better-scoped first project.</p>
+      <details class="solution">
+        <summary>Show one possible answer</summary>
+        <p>What's missing: no bounded scope ("all" emails, not a specific category), no stated success metric, no mention of a human fallback, no cost estimate. A better-scoped version: "Build an agent that drafts responses to password-reset and billing-question emails specifically (our two highest-volume, most templated categories), with every draft reviewed by a human before sending for the first month, measured by percentage of drafts sent without edits."</p>
+      </details>
+    </div>
+    
+    <h3>Knowledge check</h3>
+    <div class="quiz"><div class="quiz-q"><p class="qtext">1. What's usually the more realistic starting scope for a first agent project?</p><div class="quiz-opts"><button class="quiz-opt" data-correct="false" data-explain="Broad, unbounded scope is one of the most common reasons early agent projects stall or fail.">A broad, end-to-end automation of an entire department&#x27;s workflow</button><button class="quiz-opt" data-correct="true" data-explain="Correct -- this is exactly what makes a first project tractable and safely rolled out.">A bounded, well-understood task with a clear success metric and existing human fallback</button><button class="quiz-opt" data-correct="false" data-explain="Tool count alone doesn&#x27;t determine whether a task is well-scoped.">Whatever task requires the fewest tools to implement</button></div><div class="quiz-feedback"></div></div><div class="quiz-q"><p class="qtext">2. Why is it important to calculate a 'worst case' cost, not just a typical-case cost, before launch?</p><div class="quiz-opts"><button class="quiz-opt" data-correct="false" data-explain="This isn&#x27;t a legal requirement -- it&#x27;s sound financial planning.">Worst-case numbers are required by law</button><button class="quiz-opt" data-correct="true" data-explain="Correct -- the gap between typical and worst case is your real budget risk.">Because sessions that hit the step cap can cost far more than the typical case seen in a demo</button><button class="quiz-opt" data-correct="false" data-explain="Typical-case numbers are useful too -- the point is to look at both, not distrust one.">Because typical-case numbers are always inaccurate</button></div><div class="quiz-feedback"></div></div><div class="quiz-q"><p class="qtext">3. According to this module, what's the most common reason agentic AI projects fail?</p><div class="quiz-opts"><button class="quiz-opt" data-correct="false" data-explain="Model capability is rarely the main failure driver for well-scoped projects.">The underlying model isn&#x27;t powerful enough</button><button class="quiz-opt" data-correct="true" data-explain="Correct -- these change-management gaps are more common failure causes than raw technical shortfalls.">Nobody defined success clearly, planned for exceptions, or brought affected teams in early</button><button class="quiz-opt" data-correct="false" data-explain="Framework cost or sophistication isn&#x27;t the deciding factor here.">The company didn&#x27;t buy an expensive enough framework</button></div><div class="quiz-feedback"></div></div></div>
+  </div>
+
+  <div class="pagenav">
+    <a href="../modules/12-deploying-agents.html">← Deploying Agents to Production</a>
+    <a class="next" href="../capstone.html">Capstone project →</a>
+  </div>
+</div>
+
+<footer>
+  <div class="wrap row">
+    <div class="fine">AGENTIC AI COURSE — BUILD, DON'T JUST PROMPT.</div>
+    <div class="fine">14 MODULES · CODE LABS · 1 CAPSTONE · MIT-STYLE LICENSE FOR YOUR OWN COHORTS</div>
+  </div>
+</footer>
+<script src="../script.js"></script>
+</body>
+</html>
