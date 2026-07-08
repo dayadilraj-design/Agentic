@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Resources — Agentic AI Course</title>
+<meta name="description" content="Further reading, glossary, and reference material for the Agentic AI course.">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav class="topnav">
+  <div class="wrap bar">
+    <a href="index.html" class="brand"><span class="dot"></span>Agentic AI <span class="sub">/ COURSE v1.0</span></a>
+    <button class="navtoggle" aria-label="Menu">≡</button>
+    <div class="navlinks">
+      <a href="index.html" class="">Home</a><a href="curriculum.html" class="">Curriculum</a><a href="capstone.html" class="">Capstone</a><a href="resources.html" class="active">Resources</a>
+      <a href="curriculum.html" class="cta">START LEARNING →</a>
+    </div>
+  </div>
+</nav>
+
+<header class="module-header">
+  <div class="wrap">
+    <div class="eyebrow">REFERENCE</div>
+    <h1>Resources &amp; Glossary</h1>
+    <p class="why">A quick-reference glossary for terms used across the course, plus pointers on where to go deeper.</p>
+  </div>
+</header>
+<section>
+  <div class="wrap">
+    <div class="res-grid">
+      <div class="res-card"><div class="k">TERM</div><h4>Agent loop</h4><p>The Perceive → Reason → Act → Reflect cycle underlying every agent design in this course (Module 1).</p></div>
+      <div class="res-card"><div class="k">TERM</div><h4>Tool / function calling</h4><p>A structured request from a model to run a specific, developer-defined function, executed by application code rather than the model itself (Module 4).</p></div>
+      <div class="res-card"><div class="k">TERM</div><h4>RAG</h4><p>Retrieval-Augmented Generation — searching an external store for relevant passages and injecting them into the prompt, rather than relying on the model's training data (Module 7).</p></div>
+      <div class="res-card"><div class="k">TERM</div><h4>ReAct</h4><p>A prompting pattern that alternates explicit reasoning steps with tool-based actions, observing results in between (Module 3).</p></div>
+      <div class="res-card"><div class="k">TERM</div><h4>Plan-and-execute</h4><p>An agent pattern where an explicit multi-step plan is produced before execution begins, optionally revised mid-task (Module 6).</p></div>
+      <div class="res-card"><div class="k">TERM</div><h4>Orchestrator-worker</h4><p>A multi-agent pattern where one agent delegates sub-tasks to specialized worker agents and synthesizes their results (Module 9).</p></div>
+      <div class="res-card"><div class="k">TERM</div><h4>Prompt injection</h4><p>A security risk where instructions embedded in untrusted content are mistaken by the model for legitimate commands (Module 11).</p></div>
+      <div class="res-card"><div class="k">TERM</div><h4>Tiered autonomy</h4><p>Classifying agent actions by risk level — autonomous, confirm-first, or always-human — to scope what runs unsupervised (Module 11).</p></div>
+      <div class="res-card"><div class="k">TERM</div><h4>Eval set</h4><p>A representative, versioned set of test cases used to score agent trajectory and outcome quality over time (Module 10).</p></div>
+      <div class="res-card"><div class="k">TERM</div><h4>Trajectory evaluation</h4><p>Checking whether an agent took a reasonable path to its answer, not just whether the final answer was correct (Module 10).</p></div>
+    </div>
+
+    <div class="callout manager" style="margin-top:36px;">
+      <span class="lbl">Using this course with your own cohort</span>
+      <p>This site is a static, dependency-free build — feel free to fork the content, adapt the modules to your own tooling or model provider, and reuse the exercises and quizzes for internal training.</p>
+    </div>
+
+    <div class="pagenav">
+      <a href="capstone.html">← Capstone</a>
+      <a class="next" href="index.html">Back to home →</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap row">
+    <div class="fine">AGENTIC AI COURSE — BUILD, DON'T JUST PROMPT.</div>
+    <div class="fine">14 MODULES · CODE LABS · 1 CAPSTONE · MIT-STYLE LICENSE FOR YOUR OWN COHORTS</div>
+  </div>
+</footer>
+<script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Curriculum — Agentic AI Course</title>
+<meta name="description" content="The full 13-module curriculum for the Agentic AI course, plus the capstone project.">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav class="topnav">
+  <div class="wrap bar">
+    <a href="index.html" class="brand"><span class="dot"></span>Agentic AI <span class="sub">/ COURSE v1.0</span></a>
+    <button class="navtoggle" aria-label="Menu">≡</button>
+    <div class="navlinks">
+      <a href="index.html" class="">Home</a><a href="curriculum.html" class="active">Curriculum</a><a href="capstone.html" class="">Capstone</a><a href="resources.html" class="">Resources</a>
+      <a href="curriculum.html" class="cta">START LEARNING →</a>
+    </div>
+  </div>
+</nav>
+
+<header class="module-header">
+  <div class="wrap">
+    <div class="eyebrow">FULL CURRICULUM</div>
+    <h1>13 modules. One loop, applied deeper each time.</h1>
+    <p class="why">Every module is tagged by which part of the Perceive → Reason → Act → Reflect loop it deepens.</p>
+    <div class="phase-key">
+      <div class="phase-pill"><i style="background:#63D2C9"></i>Perceive</div>
+      <div class="phase-pill"><i style="background:#F0A93E"></i>Reason</div>
+      <div class="phase-pill"><i style="background:#E8695E"></i>Act</div>
+      <div class="phase-pill"><i style="background:#9C8CF0"></i>Reflect</div>
+    </div>
+  </div>
+</header>
+<section>
+  <div class="wrap">
+    <div class="module-grid">
+      
+        <a class="mcard" href="modules/01-what-are-ai-agents.html">
+          <span class="tag" style="background:#63D2C9"></span>
+          <span class="num">MODULE 01</span>
+          <h3>What Is an AI Agent, Really?</h3>
+          <p>Before you build anything, you need a definition that survives contact with a whiteboard argument. This module gives you one, and the vocabulary the rest of the course depends on.</p>
+          <span class="track">PERCEIVE PHASE</span>
+        </a>
+        <a class="mcard" href="modules/02-llms-as-reasoning-engines.html">
+          <span class="tag" style="background:#F0A93E"></span>
+          <span class="num">MODULE 02</span>
+          <h3>The LLM as the Reasoning Core</h3>
+          <p>Every agent is only as good as the decisions its underlying model makes. Understanding what the model is actually doing when it 'reasons' will save you from building on top of a misunderstanding.</p>
+          <span class="track">REASON PHASE</span>
+        </a>
+        <a class="mcard" href="modules/03-prompting-for-agents.html">
+          <span class="tag" style="background:#F0A93E"></span>
+          <span class="num">MODULE 03</span>
+          <h3>Prompting Patterns for Agents</h3>
+          <p>System prompts for agents do more work than chatbot prompts ever did -- they define identity, boundaries, available tools, and how to handle uncertainty. Get this wrong and everything downstream inherits the problem.</p>
+          <span class="track">REASON PHASE</span>
+        </a>
+        <a class="mcard" href="modules/04-tool-use-function-calling.html">
+          <span class="tag" style="background:#E8695E"></span>
+          <span class="num">MODULE 04</span>
+          <h3>Tool Use & Function Calling</h3>
+          <p>Tools are how an agent stops talking and starts doing. This is the single most important mechanical skill in the whole course -- everything else assumes you can wire this up correctly.</p>
+          <span class="track">ACT PHASE</span>
+        </a>
+        <a class="mcard" href="modules/05-memory-in-agents.html">
+          <span class="tag" style="background:#63D2C9"></span>
+          <span class="num">MODULE 05</span>
+          <h3>Memory: Short-Term, Long-Term & Vector Stores</h3>
+          <p>An agent without memory relearns everything every single turn. Getting memory right is what separates a one-off script from an assistant that actually gets better the more it's used.</p>
+          <span class="track">PERCEIVE PHASE</span>
+        </a>
+        <a class="mcard" href="modules/06-planning-and-reasoning.html">
+          <span class="tag" style="background:#F0A93E"></span>
+          <span class="num">MODULE 06</span>
+          <h3>Planning: Task Decomposition & Multi-Step Reasoning</h3>
+          <p>Simple tool-calling loops work for one-shot tasks. Real work -- 'plan a launch,' 'refactor this module' -- needs the agent to break a goal into an ordered set of sub-tasks first.</p>
+          <span class="track">REASON PHASE</span>
+        </a>
+        <a class="mcard" href="modules/07-rag-for-agents.html">
+          <span class="tag" style="background:#63D2C9"></span>
+          <span class="num">MODULE 07</span>
+          <h3>Retrieval-Augmented Generation (RAG) for Agents</h3>
+          <p>Agents that reason over your company's actual documents -- not just the model's training data -- need RAG. It's the single most common way to ground an agent in real, current, private information.</p>
+          <span class="track">PERCEIVE PHASE</span>
+        </a>
+        <a class="mcard" href="modules/08-agent-frameworks.html">
+          <span class="tag" style="background:#E8695E"></span>
+          <span class="num">MODULE 08</span>
+          <h3>A Tour of Agent Frameworks</h3>
+          <p>You now understand the loop well enough to build it by hand -- which means you're also ready to judge which framework (if any) is worth adopting, instead of cargo-culting whatever's trending.</p>
+          <span class="track">ACT PHASE</span>
+        </a>
+        <a class="mcard" href="modules/09-multi-agent-systems.html">
+          <span class="tag" style="background:#E8695E"></span>
+          <span class="num">MODULE 09</span>
+          <h3>Multi-Agent Systems & Orchestration</h3>
+          <p>Some tasks are genuinely too broad for one agent to hold in its head at once. Multi-agent design lets you trade a bigger, murkier problem for several smaller, clearer ones -- at the cost of real coordination overhead.</p>
+          <span class="track">ACT PHASE</span>
+        </a>
+        <a class="mcard" href="modules/10-evaluation-debugging.html">
+          <span class="tag" style="background:#9C8CF0"></span>
+          <span class="num">MODULE 10</span>
+          <h3>Evaluation, Testing & Debugging Agents</h3>
+          <p>Agents fail in ways traditional software doesn't -- silently, plausibly, and inconsistently across runs. Without a real evaluation practice, you're shipping on vibes.</p>
+          <span class="track">REFLECT PHASE</span>
+        </a>
+        <a class="mcard" href="modules/11-safety-guardrails.html">
+          <span class="tag" style="background:#9C8CF0"></span>
+          <span class="num">MODULE 11</span>
+          <h3>Safety, Guardrails & Human-in-the-Loop</h3>
+          <p>The gap between a clever demo and a production agent is almost entirely made of guardrails. This module is the difference between an agent you can trust with real consequences and one you can't.</p>
+          <span class="track">REFLECT PHASE</span>
+        </a>
+        <a class="mcard" href="modules/12-deploying-agents.html">
+          <span class="tag" style="background:#E8695E"></span>
+          <span class="num">MODULE 12</span>
+          <h3>Deploying Agents to Production</h3>
+          <p>A working agent in a notebook and a working agent in production are two different engineering problems. This module covers the gap: cost, latency, monitoring, and graceful degradation.</p>
+          <span class="track">ACT PHASE</span>
+        </a>
+        <a class="mcard" href="modules/13-business-case-roi.html">
+          <span class="tag" style="background:#9C8CF0"></span>
+          <span class="num">MODULE 13</span>
+          <h3>The Business Case: ROI, Scoping & Change Management</h3>
+          <p>Technical skill alone doesn't ship an agent. Someone has to decide it's worth building, scope it correctly, and manage what changes for the people whose work it touches.</p>
+          <span class="track">REFLECT PHASE</span>
+        </a>
+        <a class="mcard" href="capstone.html">
+          <span class="tag" style="background:#F0A93E"></span>
+          <span class="num">CAPSTONE</span>
+          <h3>Build a Research &amp; Report Agent</h3>
+          <p>Assemble tool use, memory, RAG, planning, and safety into one working agent.</p>
+          <span class="track">FINAL PROJECT</span>
+        </a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap row">
+    <div class="fine">AGENTIC AI COURSE — BUILD, DON'T JUST PROMPT.</div>
+    <div class="fine">14 MODULES · CODE LABS · 1 CAPSTONE · MIT-STYLE LICENSE FOR YOUR OWN COHORTS</div>
+  </div>
+</footer>
+<script src="script.js"></script>
+</body>
+</html>

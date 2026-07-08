@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Capstone — Build a Research &amp; Report Agent</title>
+<meta name="description" content="The final capstone project for the Agentic AI course: a research and report agent combining every module&#x27;s skills.">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav class="topnav">
+  <div class="wrap bar">
+    <a href="index.html" class="brand"><span class="dot"></span>Agentic AI <span class="sub">/ COURSE v1.0</span></a>
+    <button class="navtoggle" aria-label="Menu">≡</button>
+    <div class="navlinks">
+      <a href="index.html" class="">Home</a><a href="curriculum.html" class="">Curriculum</a><a href="capstone.html" class="active">Capstone</a><a href="resources.html" class="">Resources</a>
+      <a href="curriculum.html" class="cta">START LEARNING →</a>
+    </div>
+  </div>
+</nav>
+
+<header class="module-header">
+  <div class="wrap">
+    <div class="eyebrow">CAPSTONE PROJECT</div>
+    <h1>Build a Research &amp; Report Agent</h1>
+    <p class="why">Given a topic, this agent researches it across your own documents and the web, keeps notes in memory across sessions, produces a cited report, and asks for human confirmation before anything leaves draft form.</p>
+  </div>
+</header>
+<section>
+  <div class="wrap">
+    <div class="section-head">
+      <div class="eyebrow">BRIEF</div>
+      <h2>What you're building</h2>
+      <p>A single agent that: accepts a research topic, plans its approach, searches both an internal document store (RAG) and, optionally, the web, keeps a running memory of what it has already found, produces a structured report with citations, and never sends or publishes anything without explicit confirmation.</p>
+    </div>
+
+    <h3 style="font-family:var(--font-display); font-size:22px; margin-bottom:18px;">Milestones</h3>
+    <div class="milestone">
+      <div class="mk">M1</div>
+      <div><h4>Core loop &amp; tool definitions</h4><p>Stand up the base Perceive-Reason-Act-Reflect loop from Module 1, with a <code>search_docs</code> and a <code>save_note</code> tool defined per Module 4's schema conventions.</p></div>
+    </div>
+    <div class="milestone">
+      <div class="mk">M2</div>
+      <div><h4>RAG over your own documents</h4><p>Chunk, embed, and index a small document set (Module 7), and confirm the agent can answer a question grounded only in retrieved passages.</p></div>
+    </div>
+    <div class="milestone">
+      <div class="mk">M3</div>
+      <div><h4>Cross-session memory</h4><p>Add a vector-store-backed memory (Module 5) so the agent recalls prior research on a topic across separate sessions, not just within one conversation.</p></div>
+    </div>
+    <div class="milestone">
+      <div class="mk">M4</div>
+      <div><h4>Plan-and-execute reasoning</h4><p>Have the agent produce an explicit research plan before executing (Module 6), and log that plan for review.</p></div>
+    </div>
+    <div class="milestone">
+      <div class="mk">M5</div>
+      <div><h4>Safety gate</h4><p>Apply tiered autonomy (Module 11): searching and note-taking are autonomous; producing and sharing a final report requires human confirmation.</p></div>
+    </div>
+    <div class="milestone">
+      <div class="mk">M6</div>
+      <div><h4>Eval set</h4><p>Write at least five eval cases (Module 10) covering a straightforward research task, an ambiguous topic, and a topic with no good sources available — and confirm the agent degrades honestly on the last one.</p></div>
+    </div>
+
+    <div class="callout" style="margin-top:32px;">
+      <span class="lbl">Definition of done</span>
+      <p>The agent produces a cited, human-reviewed report on a new topic it has never seen, recalls relevant prior research if you ask about a topic a second time, and clearly explains itself — rather than guessing — when it can't find good sources.</p>
+    </div>
+
+    <div class="pagenav">
+      <a href="modules/13-business-case-roi.html">← Module 13</a>
+      <a class="next" href="resources.html">Resources →</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap row">
+    <div class="fine">AGENTIC AI COURSE — BUILD, DON'T JUST PROMPT.</div>
+    <div class="fine">14 MODULES · CODE LABS · 1 CAPSTONE · MIT-STYLE LICENSE FOR YOUR OWN COHORTS</div>
+  </div>
+</footer>
+<script src="script.js"></script>
+</body>
+</html>
